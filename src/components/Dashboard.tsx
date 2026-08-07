@@ -12,6 +12,7 @@ interface DashboardProps {
   wallets: WalletType[];
   transactions: Transaction[];
   budgets: Budget[];
+  monthlyBudget: number;
   setActiveTab: (tab: string) => void;
   handleDelete: (id: string) => void;
 }
@@ -32,7 +33,7 @@ const itemVariants = {
 
 export default function Dashboard({
   totalBalance, currentMonthIncome, currentMonthExpense, dailyAvgExpense,
-  wallets, transactions, budgets, setActiveTab, handleDelete
+  wallets, transactions, budgets, monthlyBudget, setActiveTab, handleDelete
 }: DashboardProps) {
 
   const formatCurrency = (val: number) => {
@@ -217,6 +218,27 @@ export default function Dashboard({
               </button>
             </div>
             <div className="space-y-5">
+              {/* Overall Monthly Budget */}
+              <div>
+                <div className="flex justify-between items-center text-sm font-semibold mb-2 gap-2">
+                  <span className="flex items-center text-slate-700 dark:text-slate-300 shrink-0">
+                    <span className="mr-2 opacity-80">💰</span> <span className="truncate">Overall Budget</span>
+                  </span>
+                  <span className="text-slate-900 dark:text-white text-right whitespace-nowrap">
+                    {formatCurrency(currentMonthExpense)} <span className="text-slate-400 font-medium text-[10px] ml-1">/ {formatCurrency(monthlyBudget)}</span>
+                  </span>
+                </div>
+                <div className="h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden flex">
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${Math.min(100, Math.round((currentMonthExpense / (monthlyBudget || 1)) * 100))}%` }}
+                    transition={{ duration: 1, ease: 'easeOut', delay: 0.2 }}
+                    className={`h-full rounded-full ${currentMonthExpense >= monthlyBudget ? 'bg-rose-500' : (currentMonthExpense / (monthlyBudget || 1)) > 0.8 ? 'bg-amber-400' : 'bg-emerald-500'}`}
+                  />
+                </div>
+              </div>
+              <div className="w-full h-px bg-slate-100 dark:bg-slate-800 my-2" />
+              
               {budgets.map(budget => {
                 const spent = transactions
                   .filter(t => t.category === budget.category && t.type === 'expense')

@@ -298,6 +298,7 @@ export default function App() {
                 wallets={wallets}
                 transactions={transactions}
                 budgets={budgets}
+                monthlyBudget={monthlyBudget}
                 setActiveTab={setActiveTab}
                 handleDelete={handleDelete}
               />
