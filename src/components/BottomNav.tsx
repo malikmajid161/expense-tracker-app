@@ -5,11 +5,12 @@ interface BottomNavProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   handleAddDemoTx: () => void;
+  isVisible: boolean;
 }
 
-export default function BottomNav({ activeTab, setActiveTab, handleAddDemoTx }: BottomNavProps) {
+export default function BottomNav({ activeTab, setActiveTab, handleAddDemoTx, isVisible }: BottomNavProps) {
   return (
-    <nav className="absolute bottom-0 left-0 right-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-t border-slate-200/50 dark:border-slate-800 pb-safe pt-2 px-4 flex justify-between items-center z-50 rounded-b-[2.5rem]">
+    <nav className={`absolute bottom-0 left-0 right-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-t border-slate-200/50 dark:border-slate-800 pb-safe pt-2 px-4 flex justify-between items-center z-50 rounded-b-[2.5rem] transition-all duration-300 ease-in-out ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'}`}>
       {[
         { id: 'home', icon: <Home size={22} /> },
         { id: 'transactions', icon: <ArrowRightLeft size={22} /> },
