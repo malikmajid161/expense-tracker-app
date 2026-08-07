@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Search, Bell, Plus, LayoutDashboard, Smartphone, X } from 'lucide-react';
 import { INITIAL_TRANSACTIONS, INITIAL_WALLETS, INITIAL_BUDGETS } from './data';
 import BottomNav from './components/BottomNav';
@@ -24,21 +24,6 @@ export default function App() {
   // Search State
   const [isSearching, setIsSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  
-  // Scroll & Nav State
-  const [showBottomNav, setShowBottomNav] = useState(true);
-  const lastScrollY = useRef(0);
-
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const currentScrollY = e.currentTarget.scrollTop;
-    if (currentScrollY > lastScrollY.current + 15) {
-      setShowBottomNav(false);
-      lastScrollY.current = currentScrollY;
-    } else if (currentScrollY < lastScrollY.current - 15) {
-      setShowBottomNav(true);
-      lastScrollY.current = currentScrollY;
-    }
-  };
 
   // Auth state
   const [currentUser, setCurrentUser] = useState<string | null>(() => localStorage.getItem('expense_currentUser'));
@@ -302,8 +287,8 @@ export default function App() {
             </div>
           </header>
 
-          {/* CONTENT - Reduced padding since nav hides on scroll */}
-          <div onScroll={handleScroll} className="flex-1 px-4 py-5 pb-8 overflow-y-auto overscroll-contain scrollbar-none relative">
+          {/* CONTENT - Padding bottom clears the nav bar properly */}
+          <div className="flex-1 px-4 py-5 pb-24 overflow-y-auto overscroll-contain scrollbar-none relative">
             {activeTab === 'home' ? (
               <Dashboard 
                 totalBalance={totalBalance}
@@ -362,7 +347,7 @@ export default function App() {
         </main>
 
         {/* MOBILE BOTTOM NAVIGATION */}
-        <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} handleAddDemoTx={handleAddDemoTx} isVisible={showBottomNav} />
+        <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} handleAddDemoTx={handleAddDemoTx} />
         
         {/* MODALS AND OVERLAYS */}
         <NotificationsPanel isOpen={isNotificationsOpen} onClose={() => setIsNotificationsOpen(false)} notifications={notifications} setNotifications={setNotifications} />
