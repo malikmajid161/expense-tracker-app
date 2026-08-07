@@ -153,8 +153,8 @@ export default function Settings({
                   <Wallet size={20} />
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-semibold text-slate-700 dark:text-slate-300">Monthly Budget</span>
-                  <span className="text-xs text-slate-400">{currency} {monthlyBudget} (Alert at {budgetAlertLimit}%)</span>
+                  <span className="font-semibold text-slate-700 dark:text-slate-300">Currency & Alerts</span>
+                  <span className="text-xs text-slate-400">Current: {currency} (Alert at {budgetAlertLimit}%)</span>
                 </div>
               </div>
               <ChevronRight size={18} className="text-slate-300 group-hover:text-indigo-500 transition-colors" />
@@ -338,12 +338,12 @@ export default function Settings({
               
               <div className="space-y-4 mb-8">
                 <div>
-                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide ml-1">Total Monthly Budget</label>
+                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide ml-1">App Currency</label>
                   <div className="mt-1.5 relative flex items-center">
                     <select 
                       value={tempCurrency}
                       onChange={(e) => setTempCurrency(e.target.value)}
-                      className="absolute left-1 h-10 pl-3 pr-8 bg-slate-100 dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 rounded-l-xl text-sm font-semibold text-slate-700 dark:text-slate-300 focus:outline-none appearance-none"
+                      className="w-full h-12 px-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-300 focus:outline-none"
                     >
                       <option value="Rs.">Rs.</option>
                       <option value="PKR">PKR</option>
@@ -351,13 +351,6 @@ export default function Settings({
                       <option value="€">€ EUR</option>
                       <option value="£">£ GBP</option>
                     </select>
-                    <input 
-                      type="number"
-                      value={tempBudget}
-                      onChange={(e) => setTempBudget(e.target.value)}
-                      className="w-full h-12 pl-24 pr-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-                      placeholder="e.g. 50000"
-                    />
                   </div>
                 </div>
 
