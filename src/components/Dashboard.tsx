@@ -236,6 +236,12 @@ export default function Dashboard({
                     className={`h-full rounded-full ${currentMonthExpense >= monthlyBudget ? 'bg-rose-500' : (currentMonthExpense / (monthlyBudget || 1)) > 0.8 ? 'bg-amber-400' : 'bg-emerald-500'}`}
                   />
                 </div>
+                <div className="mt-2 text-[11px] font-medium text-slate-500 dark:text-slate-400 flex justify-between items-center">
+                  <span>{currentMonthExpense >= monthlyBudget ? 'Budget Exceeded!' : 'Remaining Budget'}</span>
+                  <span className={currentMonthExpense >= monthlyBudget ? 'text-rose-500 font-bold' : 'text-emerald-600 dark:text-emerald-400 font-bold'}>
+                    {formatCurrency(Math.max(0, monthlyBudget - currentMonthExpense))}
+                  </span>
+                </div>
               </div>
               <div className="w-full h-px bg-slate-100 dark:bg-slate-800 my-2" />
               
