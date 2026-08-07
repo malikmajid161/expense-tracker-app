@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Fingerprint, ShieldCheck, Mail, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { Fingerprint, ShieldCheck, Mail, Lock, Eye, EyeOff, ArrowLeft, User } from 'lucide-react';
 import { supabase } from '../supabase';
 
 interface LockScreenProps {
@@ -18,7 +18,7 @@ export default function LockScreen({ onUnlock }: LockScreenProps) {
   const [isSuccess, setIsSuccess] = useState(false);
   
   // Form States
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -41,24 +41,27 @@ export default function LockScreen({ onUnlock }: LockScreenProps) {
     e.preventDefault();
     setErrorMsg('');
     
+    const formattedEmail = username.includes('@') ? username : `${username}@fintrack.app`;
+    
     // First check Supabase Auth
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: formattedEmail,
         password,
       });
 
       if (error) {
         // Fallback to local storage auth if Supabase fails (e.g. offline)
         const users = JSON.parse(localStorage.getItem('fintrack_users') || '[]');
-        const localUser = users.find((u: any) => u.email === email && u.password === btoa(password));
+        // Check for both old 'email' and new 'username' structure to prevent breaking existing accounts
+        const localUser = users.find((u: any) => (u.username === username || u.email === username) && u.password === btoa(password));
         if (localUser) {
-          onUnlock(email);
+          onUnlock(username);
         } else {
-          setErrorMsg(error.message || 'Invalid email or password');
+          setErrorMsg(error.message || 'Invalid username or password');
         }
       } else if (data.user) {
-        onUnlock(data.user.email || email);
+        onUnlock(username);
       }
     } catch (err: any) {
       setErrorMsg(err.message || 'An error occurred during login');
@@ -73,10 +76,19 @@ export default function LockScreen({ onUnlock }: LockScreenProps) {
       return;
     }
     
+    // Check if user already exists
+    const users = JSON.parse(localStorage.getItem('fintrack_users') || '[]');
+    if (users.find((u: any) => u.username === username || u.email === username)) {
+      setErrorMsg('User already exists');
+      return;
+    }
+
+    const formattedEmail = username.includes('@') ? username : `${username}@fintrack.app`;
+    
     try {
       // Register with Supabase
       const { data, error } = await supabase.auth.signUp({
-        email,
+        email: formattedEmail,
         password,
       });
 
@@ -86,19 +98,10 @@ export default function LockScreen({ onUnlock }: LockScreenProps) {
       }
 
       // Also save to local storage as a backup/fallback
-      const users = JSON.parse(localStorage.getItem('fintrack_users') || '[]');
-      if (!users.find((u: any) => u.email === email)) {
-        users.push({ email, password: btoa(password) });
-        localStorage.setItem('fintrack_users', JSON.stringify(users));
-      }
+      users.push({ username, password: btoa(password) });
+      localStorage.setItem('fintrack_users', JSON.stringify(users));
 
-      if (data?.user) {
-        // Supabase requires email verification by default, but we'll unlock immediately for smooth UX
-        onUnlock(data.user.email || email);
-      } else {
-         // Fallback if no user returned or if Supabase failed
-         onUnlock(email);
-      }
+      onUnlock(username);
     } catch (err: any) {
       setErrorMsg(err.message || 'An error occurred during registration');
     }
@@ -108,12 +111,14 @@ export default function LockScreen({ onUnlock }: LockScreenProps) {
     e.preventDefault();
     setErrorMsg('');
     
+    const formattedEmail = username.includes('@') ? username : `${username}@fintrack.app`;
+    
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      const { error } = await supabase.auth.resetPasswordForEmail(formattedEmail);
       if (error) {
         setErrorMsg(error.message);
       } else {
-        alert(`Reset instructions sent to ${email} via Supabase!`);
+        alert(`Reset instructions sent via Supabase!`);
         setMode('login');
       }
     } catch (err: any) {
@@ -148,7 +153,7 @@ export default function LockScreen({ onUnlock }: LockScreenProps) {
             ) : mode === 'biometric' ? 'Please authenticate to continue' : 
              mode === 'login' ? 'Sign in to access your finances' : 
              mode === 'register' ? 'Secure your financial journey' : 
-             'Enter your email to receive a reset link'}
+             'Enter your username to receive a reset link'}
           </p>
         </div>
 
@@ -211,13 +216,13 @@ export default function LockScreen({ onUnlock }: LockScreenProps) {
               className="space-y-4"
             >
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={20} />
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={20} />
                 <input 
-                  type="email" 
+                  type="text" 
                   required
-                  placeholder="Email Address" 
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
+                  placeholder="Username" 
+                  value={username}
+                  onChange={e => setUsername(e.target.value)}
                   className="w-full bg-slate-800/50 border border-slate-700 text-white rounded-2xl py-3.5 pl-12 pr-4 focus:outline-none focus:border-indigo-500 focus:bg-slate-800 transition-all"
                 />
               </div>
@@ -271,13 +276,13 @@ export default function LockScreen({ onUnlock }: LockScreenProps) {
               className="space-y-4"
             >
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={20} />
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={20} />
                 <input 
-                  type="email" 
+                  type="text" 
                   required
-                  placeholder="Email Address" 
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
+                  placeholder="Username" 
+                  value={username}
+                  onChange={e => setUsername(e.target.value)}
                   className="w-full bg-slate-800/50 border border-slate-700 text-white rounded-2xl py-3.5 pl-12 pr-4 focus:outline-none focus:border-indigo-500 focus:bg-slate-800 transition-all"
                 />
               </div>
@@ -331,13 +336,13 @@ export default function LockScreen({ onUnlock }: LockScreenProps) {
               className="space-y-4"
             >
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={20} />
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={20} />
                 <input 
-                  type="email" 
+                  type="text" 
                   required
-                  placeholder="Enter your Email Address" 
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
+                  placeholder="Enter your Username" 
+                  value={username}
+                  onChange={e => setUsername(e.target.value)}
                   className="w-full bg-slate-800/50 border border-slate-700 text-white rounded-2xl py-3.5 pl-12 pr-4 focus:outline-none focus:border-indigo-500 focus:bg-slate-800 transition-all"
                 />
               </div>
