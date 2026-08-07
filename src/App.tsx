@@ -220,7 +220,7 @@ export default function App() {
     <div className={`min-h-[100dvh] flex justify-center items-start md:items-center md:py-6 font-sans selection:bg-indigo-100 selection:text-indigo-900 transition-colors duration-300 ${isDarkMode ? 'bg-slate-900' : 'bg-[#CBD5E1]'}`}>
       
       {/* Mobile Frame Container */}
-      <div className={`w-full max-w-[420px] min-h-[100dvh] md:min-h-0 md:h-[850px] md:rounded-[3rem] shadow-2xl overflow-hidden flex flex-col relative md:border-[12px] ring-1 transition-colors duration-300 ${isDarkMode ? 'bg-slate-950 border-black ring-slate-800' : 'bg-[#F4F7FE] border-slate-900 ring-slate-800'}`}>
+      <div className={`w-full max-w-[420px] min-h-[100dvh] md:min-h-0 md:h-[90vh] md:max-h-[850px] md:rounded-[3rem] shadow-2xl overflow-hidden flex flex-col relative md:border-[12px] ring-1 transition-colors duration-300 ${isDarkMode ? 'bg-slate-950 border-black ring-slate-800' : 'bg-[#F4F7FE] border-slate-900 ring-slate-800'}`}>
         
         {/* Biometric Lock Screen */}
         {isLocked && (
