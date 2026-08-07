@@ -224,8 +224,10 @@ export default function Dashboard({
                   <span className="flex items-center text-slate-700 dark:text-slate-300 shrink-0">
                     <span className="mr-2 opacity-80">💰</span> <span className="truncate">Overall Budget</span>
                   </span>
-                  <span className="text-slate-900 dark:text-white text-right whitespace-nowrap">
-                    {formatCurrency(currentMonthExpense)} <span className="text-slate-400 font-medium text-[10px] ml-1">/ {formatCurrency(monthlyBudget)}</span>
+                  <span className="text-slate-900 dark:text-white text-right whitespace-nowrap flex items-center justify-end">
+                    <span className="text-slate-400 font-medium text-[10px] mr-1.5 uppercase tracking-wider">Spent</span>
+                    {formatCurrency(currentMonthExpense)} 
+                    <span className="text-slate-400 font-medium text-[10px] ml-1">/ {formatCurrency(monthlyBudget)}</span>
                   </span>
                 </div>
                 <div className="h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden flex">
@@ -259,8 +261,10 @@ export default function Dashboard({
                       <span className="flex items-center text-slate-700 dark:text-slate-300 shrink-0">
                         <span className="mr-2 opacity-80">{budget.icon}</span> <span className="truncate">{budget.category}</span>
                       </span>
-                      <span className="text-slate-900 dark:text-white text-right whitespace-nowrap">
-                        {formatCurrency(spent)} <span className="text-slate-400 font-medium text-[10px] ml-1">/ {formatCurrency(budget.limit)}</span>
+                      <span className="text-slate-900 dark:text-white text-right whitespace-nowrap flex items-center justify-end">
+                        <span className="text-slate-400 font-medium text-[10px] mr-1.5 uppercase tracking-wider">Spent</span>
+                        {formatCurrency(spent)} 
+                        <span className="text-slate-400 font-medium text-[10px] ml-1">/ {formatCurrency(budget.limit)}</span>
                       </span>
                     </div>
                     <div className="h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden flex">
