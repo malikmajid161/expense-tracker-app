@@ -3,7 +3,6 @@
 @layer base {
   html, body {
     font-family: 'Outfit', sans-serif;
-    overscroll-behavior-y: none;
   }
 }
 
