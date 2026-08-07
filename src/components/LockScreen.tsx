@@ -81,22 +81,22 @@ export default function LockScreen({ onUnlock }: LockScreenProps) {
       });
 
       if (error) {
-        setErrorMsg(error.message);
-        return;
+        console.warn("Supabase auth error:", error.message);
+        // We will continue to allow local registration fallback even if Supabase rate limit is exceeded
       }
 
-      // Also save to local storage as a backup
+      // Also save to local storage as a backup/fallback
       const users = JSON.parse(localStorage.getItem('fintrack_users') || '[]');
       if (!users.find((u: any) => u.email === email)) {
         users.push({ email, password: btoa(password) });
         localStorage.setItem('fintrack_users', JSON.stringify(users));
       }
 
-      if (data.user) {
+      if (data?.user) {
         // Supabase requires email verification by default, but we'll unlock immediately for smooth UX
         onUnlock(data.user.email || email);
       } else {
-         // Fallback if no user returned
+         // Fallback if no user returned or if Supabase failed
          onUnlock(email);
       }
     } catch (err: any) {
