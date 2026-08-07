@@ -217,7 +217,7 @@ export default function App() {
   const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
-    <div className={`min-h-[100dvh] flex justify-center items-center md:py-6 font-sans selection:bg-indigo-100 selection:text-indigo-900 transition-colors duration-300 ${isDarkMode ? 'bg-slate-900' : 'bg-[#CBD5E1]'}`}>
+    <div className={`min-h-[100dvh] flex justify-center md:items-center items-start md:py-6 font-sans selection:bg-indigo-100 selection:text-indigo-900 transition-colors duration-300 ${isDarkMode ? 'bg-slate-900' : 'bg-[#CBD5E1]'}`}>
       
       {/* Mobile Frame Container */}
       <div className={`w-full max-w-[420px] h-[100dvh] md:h-[850px] md:rounded-[3rem] shadow-2xl overflow-hidden flex flex-col relative md:border-[12px] ring-1 transition-colors duration-300 ${isDarkMode ? 'bg-slate-950 border-black ring-slate-800' : 'bg-[#F4F7FE] border-slate-900 ring-slate-800'}`}>
