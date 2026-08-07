@@ -190,7 +190,7 @@ export default function App() {
           message: `You have used ${Math.round((currentMonthExpenses/monthlyBudget)*100)}% of your monthly budget!`,
           time: 'Just now',
           read: false,
-          type: 'warning'
+          type: 'alert'
         }, ...prev]);
       }
     }
@@ -288,7 +288,7 @@ export default function App() {
           </header>
 
           {/* CONTENT - Added extra padding bottom to clear the nav bar properly */}
-          <div className="flex-1 px-4 py-5 pb-36 z-10 overflow-y-auto scrollbar-none relative">
+          <div className="flex-1 px-4 py-5 pb-24 z-10 overflow-y-auto overscroll-contain scrollbar-none relative">
             {activeTab === 'home' ? (
               <Dashboard 
                 totalBalance={totalBalance}

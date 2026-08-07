@@ -1,8 +1,9 @@
 @import "tailwindcss";
 
 @layer base {
-  html {
+  html, body {
     font-family: 'Outfit', sans-serif;
+    overscroll-behavior-y: none;
   }
 }
 
