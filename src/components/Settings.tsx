@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sun, Moon, Lock, Download, Trash2, ChevronRight, User, Shield, Bell, HelpCircle, FileText, LogOut } from 'lucide-react';
+import { Sun, Moon, Lock, Download, Trash2, ChevronRight, User, Shield, Bell, HelpCircle, FileText, LogOut, Wallet } from 'lucide-react';
 import type { Transaction } from '../types';
 
 interface SettingsProps {
@@ -13,6 +13,8 @@ interface SettingsProps {
   openEditProfile: () => void;
   openNotifications: () => void;
   transactions: Transaction[];
+  monthlyBudget: number;
+  setMonthlyBudget: (budget: number) => void;
 }
 
 const containerVariants = {
@@ -26,7 +28,7 @@ const itemVariants = {
 };
 
 export default function Settings({ 
-  userName, userAvatar, isDarkMode, setIsDarkMode, biometricEnabled, setBiometricEnabled, openEditProfile, openNotifications, transactions 
+  userName, userAvatar, isDarkMode, setIsDarkMode, biometricEnabled, setBiometricEnabled, openEditProfile, openNotifications, transactions, monthlyBudget, setMonthlyBudget 
 }: SettingsProps) {
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -35,6 +37,19 @@ export default function Settings({
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);
+  };
+
+  const handleSetBudget = () => {
+    const input = prompt("Enter your total monthly budget in Rs:", String(monthlyBudget));
+    if (input !== null) {
+      const parsed = parseInt(input.replace(/[^0-9]/g, ''), 10);
+      if (!isNaN(parsed) && parsed > 0) {
+        setMonthlyBudget(parsed);
+        showToast(`Monthly budget set to Rs. ${parsed}`);
+      } else {
+        alert("Please enter a valid amount.");
+      }
+    }
   };
 
   const handleExportCSV = () => {
@@ -117,9 +132,22 @@ export default function Settings({
               <ChevronRight size={18} className="text-slate-300 group-hover:text-indigo-500 transition-colors" />
             </button>
             
+            <button onClick={handleSetBudget} className="w-full p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors text-left group">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 text-emerald-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Wallet size={20} />
+                </div>
+                <div className="flex flex-col">
+                  <span className="font-semibold text-slate-700 dark:text-slate-300">Monthly Budget</span>
+                  <span className="text-xs text-slate-400">Rs. {monthlyBudget}</span>
+                </div>
+              </div>
+              <ChevronRight size={18} className="text-slate-300 group-hover:text-indigo-500 transition-colors" />
+            </button>
+
             <div className="w-full p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors text-left">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 text-emerald-500 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 text-indigo-500 flex items-center justify-center">
                   <Lock size={20} />
                 </div>
                 <span className="font-semibold text-slate-700 dark:text-slate-300">Biometric Lock</span>

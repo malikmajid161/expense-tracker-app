@@ -12,6 +12,7 @@ import AddTransactionModal from './components/AddTransactionModal';
 import EditProfileModal from './components/EditProfileModal';
 import AddWalletModal from './components/AddWalletModal';
 import LockScreen from './components/LockScreen';
+import AiAssistant from './components/AiAssistant';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('home');
@@ -47,7 +48,18 @@ export default function App() {
     const saved = localStorage.getItem(`expense_wallets_${user}`);
     return saved ? JSON.parse(saved) : INITIAL_WALLETS;
   });
-  const [budgets] = useState(INITIAL_BUDGETS);
+  
+  const [budgets, setBudgets] = useState(() => {
+    const user = localStorage.getItem('expense_currentUser') || 'guest';
+    const saved = localStorage.getItem(`expense_budgets_${user}`);
+    return saved ? JSON.parse(saved) : INITIAL_BUDGETS;
+  });
+
+  const [monthlyBudget, setMonthlyBudget] = useState(() => {
+    const user = localStorage.getItem('expense_currentUser') || 'guest';
+    const saved = localStorage.getItem(`expense_monthlyBudget_${user}`);
+    return saved ? Number(saved) : 50000;
+  });
   
   const [notifications, setNotifications] = useState<AppNotification[]>(() => {
     const user = localStorage.getItem('expense_currentUser') || 'guest';
@@ -69,6 +81,13 @@ export default function App() {
       const savedNotifs = localStorage.getItem(`expense_notifications_${currentUser}`);
       if (savedNotifs) setNotifications(JSON.parse(savedNotifs));
       
+      const savedBudgets = localStorage.getItem(`expense_budgets_${currentUser}`);
+      if (savedBudgets) setBudgets(JSON.parse(savedBudgets));
+      else setBudgets(INITIAL_BUDGETS);
+
+      const savedMonthly = localStorage.getItem(`expense_monthlyBudget_${currentUser}`);
+      setMonthlyBudget(savedMonthly ? Number(savedMonthly) : 50000);
+
       setUserName(localStorage.getItem(`expense_userName_${currentUser}`) || currentUser.split('@')[0]);
       setUserEmail(currentUser);
       setUserAvatar(localStorage.getItem(`expense_userAvatar_${currentUser}`));
@@ -80,6 +99,8 @@ export default function App() {
   useEffect(() => { if (currentUser && userAvatar) localStorage.setItem(`expense_userAvatar_${currentUser}`, userAvatar); }, [userAvatar, currentUser]);
   useEffect(() => { if (currentUser) localStorage.setItem(`expense_transactions_${currentUser}`, JSON.stringify(transactions)); }, [transactions, currentUser]);
   useEffect(() => { if (currentUser) localStorage.setItem(`expense_wallets_${currentUser}`, JSON.stringify(wallets)); }, [wallets, currentUser]);
+  useEffect(() => { if (currentUser) localStorage.setItem(`expense_budgets_${currentUser}`, JSON.stringify(budgets)); }, [budgets, currentUser]);
+  useEffect(() => { if (currentUser) localStorage.setItem(`expense_monthlyBudget_${currentUser}`, String(monthlyBudget)); }, [monthlyBudget, currentUser]);
   useEffect(() => { localStorage.setItem('expense_biometric', String(biometricEnabled)); }, [biometricEnabled]);
   useEffect(() => { if (currentUser) localStorage.setItem(`expense_notifications_${currentUser}`, JSON.stringify(notifications)); }, [notifications, currentUser]);
   useEffect(() => { 
@@ -252,11 +273,15 @@ export default function App() {
                 openEditProfile={() => setIsEditProfileOpen(true)}
                 openNotifications={() => setIsNotificationsOpen(true)}
                 transactions={transactions}
+                monthlyBudget={monthlyBudget}
+                setMonthlyBudget={setMonthlyBudget}
               />
             ) : activeTab === 'transactions' ? (
               <Transactions transactions={transactions} handleDelete={handleDelete} searchQuery={searchQuery} />
             ) : activeTab === 'analytics' ? (
               <Analytics transactions={transactions} />
+            ) : activeTab === 'ai' ? (
+              <AiAssistant transactions={transactions} wallets={wallets} budgets={budgets} userName={userName} monthlyBudget={monthlyBudget} />
             ) : activeTab === 'wallets' ? (
               <WalletsView wallets={wallets} transactions={transactions} openAddWallet={() => setIsAddWalletOpen(true)} searchQuery={searchQuery} />
             ) : (
