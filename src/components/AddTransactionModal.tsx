@@ -1,41 +1,73 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Check } from 'lucide-react';
 import { CATEGORIES } from '../data';
+import type { Wallet } from '../types';
 
 interface AddTransactionModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAdd: (tx: any) => void;
+  wallets?: Wallet[];
+  currency?: string;
 }
 
-export default function AddTransactionModal({ isOpen, onClose, onAdd }: AddTransactionModalProps) {
+export default function AddTransactionModal({ isOpen, onClose, onAdd, wallets = [], currency = 'Rs.' }: AddTransactionModalProps) {
   const [type, setType] = useState<'expense' | 'income'>('expense');
   const [amount, setAmount] = useState('');
+  
   const [category, setCategory] = useState(CATEGORIES[3].name); // Default Groceries
+  const [isCustomCategory, setIsCustomCategory] = useState(false);
+  const [customCategory, setCustomCategory] = useState('');
+
+  const [wallet, setWallet] = useState(wallets.length > 0 ? wallets[0].name : 'Cash');
+  const [isCustomWallet, setIsCustomWallet] = useState(false);
+  const [customWallet, setCustomWallet] = useState('');
+  
   const [note, setNote] = useState('');
-  const [wallet, setWallet] = useState('Meezan Bank');
+
+  // Reset local state when opened
+  useEffect(() => {
+    if (isOpen) {
+      setType('expense');
+      setAmount('');
+      setCategory(CATEGORIES[3].name);
+      setIsCustomCategory(false);
+      setCustomCategory('');
+      setWallet(wallets.length > 0 ? wallets[0].name : 'Cash');
+      setIsCustomWallet(false);
+      setCustomWallet('');
+      setNote('');
+    }
+  }, [isOpen, wallets]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!amount || isNaN(Number(amount))) return;
     
+    const finalCategory = isCustomCategory ? customCategory : category;
+    const finalWallet = isCustomWallet ? customWallet : wallet;
+
+    if (!finalCategory || !finalWallet) {
+      alert("Please provide a category and wallet");
+      return;
+    }
+    
     onAdd({
       id: Date.now().toString(),
       amount: Number(amount),
       type,
-      category,
-      wallet,
+      category: finalCategory,
+      wallet: finalWallet,
       note: note || 'New Transaction',
       date: new Date().toISOString().split('T')[0],
       isRecurring: false
     });
     
-    // Reset form
-    setAmount('');
-    setNote('');
     onClose();
   };
+
+  const availableCategories = CATEGORIES.filter(c => c.type === type);
 
   return (
     <AnimatePresence>
@@ -77,7 +109,7 @@ export default function AddTransactionModal({ isOpen, onClose, onAdd }: AddTrans
 
                 {/* Amount */}
                 <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Amount (Rs)</label>
+                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Amount ({currency})</label>
                   <input 
                     type="number" 
                     value={amount}
@@ -90,30 +122,64 @@ export default function AddTransactionModal({ isOpen, onClose, onAdd }: AddTrans
 
                 {/* Category & Wallet */}
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Category</label>
+                  <div className="flex flex-col space-y-2">
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">Category</label>
                     <select 
-                      value={category}
-                      onChange={(e) => setCategory(e.target.value)}
+                      value={isCustomCategory ? 'other' : category}
+                      onChange={(e) => {
+                        if (e.target.value === 'other') setIsCustomCategory(true);
+                        else {
+                          setIsCustomCategory(false);
+                          setCategory(e.target.value);
+                        }
+                      }}
                       className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                     >
-                      {CATEGORIES.filter(c => c.type === type).map(c => (
+                      {availableCategories.map(c => (
                         <option key={c.name} value={c.name}>{c.name}</option>
                       ))}
+                      <option value="other">Other (Custom)</option>
                     </select>
+                    {isCustomCategory && (
+                      <input 
+                        type="text"
+                        value={customCategory}
+                        onChange={(e) => setCustomCategory(e.target.value)}
+                        placeholder="Type category..."
+                        required
+                        className="w-full bg-indigo-50/50 border border-indigo-200 rounded-xl px-4 py-2 text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                      />
+                    )}
                   </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Wallet</label>
+                  
+                  <div className="flex flex-col space-y-2">
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">Wallet</label>
                     <select 
-                      value={wallet}
-                      onChange={(e) => setWallet(e.target.value)}
+                      value={isCustomWallet ? 'other' : wallet}
+                      onChange={(e) => {
+                        if (e.target.value === 'other') setIsCustomWallet(true);
+                        else {
+                          setIsCustomWallet(false);
+                          setWallet(e.target.value);
+                        }
+                      }}
                       className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                     >
-                      <option value="Cash">Cash</option>
-                      <option value="Meezan Bank">Meezan Bank</option>
-                      <option value="JazzCash">JazzCash</option>
-                      <option value="Easypaisa">Easypaisa</option>
+                      {wallets.map(w => (
+                        <option key={w.name} value={w.name}>{w.name}</option>
+                      ))}
+                      <option value="other">Other (Custom)</option>
                     </select>
+                    {isCustomWallet && (
+                      <input 
+                        type="text"
+                        value={customWallet}
+                        onChange={(e) => setCustomWallet(e.target.value)}
+                        placeholder="Type wallet..."
+                        required
+                        className="w-full bg-indigo-50/50 border border-indigo-200 rounded-xl px-4 py-2 text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                      />
+                    )}
                   </div>
                 </div>
 

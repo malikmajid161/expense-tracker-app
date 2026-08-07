@@ -15,6 +15,10 @@ interface SettingsProps {
   transactions: Transaction[];
   monthlyBudget: number;
   setMonthlyBudget: (budget: number) => void;
+  currency: string;
+  setCurrency: (c: string) => void;
+  budgetAlertLimit: number;
+  setBudgetAlertLimit: (l: number) => void;
 }
 
 const containerVariants = {
@@ -28,27 +32,33 @@ const itemVariants = {
 };
 
 export default function Settings({ 
-  userName, userAvatar, isDarkMode, setIsDarkMode, biometricEnabled, setBiometricEnabled, openEditProfile, openNotifications, transactions, monthlyBudget, setMonthlyBudget 
+  userName, userAvatar, isDarkMode, setIsDarkMode, biometricEnabled, setBiometricEnabled, openEditProfile, openNotifications, transactions, monthlyBudget, setMonthlyBudget, currency, setCurrency, budgetAlertLimit, setBudgetAlertLimit 
 }: SettingsProps) {
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [showConfirmClear, setShowConfirmClear] = useState(false);
+  const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
+  
+  const [tempBudget, setTempBudget] = useState(String(monthlyBudget));
+  const [tempCurrency, setTempCurrency] = useState(currency);
+  const [tempLimit, setTempLimit] = useState(String(budgetAlertLimit));
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  const handleSetBudget = () => {
-    const input = prompt("Enter your total monthly budget in Rs:", String(monthlyBudget));
-    if (input !== null) {
-      const parsed = parseInt(input.replace(/[^0-9]/g, ''), 10);
-      if (!isNaN(parsed) && parsed > 0) {
-        setMonthlyBudget(parsed);
-        showToast(`Monthly budget set to Rs. ${parsed}`);
-      } else {
-        alert("Please enter a valid amount.");
-      }
+  const handleSaveBudgetSettings = () => {
+    const b = parseInt(tempBudget.replace(/[^0-9]/g, ''), 10);
+    const l = parseInt(tempLimit.replace(/[^0-9]/g, ''), 10);
+    if (!isNaN(b) && b > 0 && !isNaN(l) && l > 0 && l <= 100) {
+      setMonthlyBudget(b);
+      setCurrency(tempCurrency);
+      setBudgetAlertLimit(l);
+      setIsBudgetModalOpen(false);
+      showToast('Budget settings updated successfully!');
+    } else {
+      alert("Please enter valid positive numbers. Limit must be 1-100.");
     }
   };
 
@@ -106,7 +116,7 @@ export default function Settings({
             </div>
             <div>
               <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">{userName}</h3>
-              <p className="text-xs font-medium text-slate-400">PKR (Rs.)</p>
+              <p className="text-xs font-medium text-slate-400">Free Plan</p>
             </div>
           </div>
           <button onClick={openEditProfile} className="p-2 bg-slate-50 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 rounded-xl hover:bg-indigo-50 dark:hover:bg-slate-700 transition-colors">
@@ -132,14 +142,19 @@ export default function Settings({
               <ChevronRight size={18} className="text-slate-300 group-hover:text-indigo-500 transition-colors" />
             </button>
             
-            <button onClick={handleSetBudget} className="w-full p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors text-left group">
+            <button onClick={() => {
+              setTempBudget(String(monthlyBudget));
+              setTempCurrency(currency);
+              setTempLimit(String(budgetAlertLimit));
+              setIsBudgetModalOpen(true);
+            }} className="w-full p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors text-left group">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 text-emerald-500 flex items-center justify-center group-hover:scale-110 transition-transform">
                   <Wallet size={20} />
                 </div>
                 <div className="flex flex-col">
                   <span className="font-semibold text-slate-700 dark:text-slate-300">Monthly Budget</span>
-                  <span className="text-xs text-slate-400">Rs. {monthlyBudget}</span>
+                  <span className="text-xs text-slate-400">{currency} {monthlyBudget} (Alert at {budgetAlertLimit}%)</span>
                 </div>
               </div>
               <ChevronRight size={18} className="text-slate-300 group-hover:text-indigo-500 transition-colors" />
@@ -299,6 +314,83 @@ export default function Settings({
                   className="flex-1 py-3.5 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-xl shadow-lg shadow-rose-500/25 transition-all"
                 >
                   Yes, Clear
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Budget Settings Modal */}
+      <AnimatePresence>
+        {isBudgetModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-slate-900/60 backdrop-blur-sm">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 shadow-2xl w-full max-w-sm border border-slate-100 dark:border-slate-800"
+            >
+              <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-500 rounded-2xl flex items-center justify-center mb-4 mx-auto shadow-sm">
+                <Wallet size={32} />
+              </div>
+              <h3 className="text-xl font-extrabold text-center text-slate-900 dark:text-white mb-6">Budget Settings</h3>
+              
+              <div className="space-y-4 mb-8">
+                <div>
+                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide ml-1">Total Monthly Budget</label>
+                  <div className="mt-1.5 relative flex items-center">
+                    <select 
+                      value={tempCurrency}
+                      onChange={(e) => setTempCurrency(e.target.value)}
+                      className="absolute left-1 h-10 pl-3 pr-8 bg-slate-100 dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 rounded-l-xl text-sm font-semibold text-slate-700 dark:text-slate-300 focus:outline-none appearance-none"
+                    >
+                      <option value="Rs.">Rs.</option>
+                      <option value="PKR">PKR</option>
+                      <option value="$">$ USD</option>
+                      <option value="€">€ EUR</option>
+                      <option value="£">£ GBP</option>
+                    </select>
+                    <input 
+                      type="number"
+                      value={tempBudget}
+                      onChange={(e) => setTempBudget(e.target.value)}
+                      className="w-full h-12 pl-24 pr-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                      placeholder="e.g. 50000"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide ml-1">Alert Notification Threshold (%)</label>
+                  <p className="text-[10px] text-slate-400 dark:text-slate-500 ml-1 mb-2">We will notify you when your expenses reach this percentage of your budget.</p>
+                  <div className="mt-1.5 relative flex items-center">
+                    <input 
+                      type="number"
+                      min="1"
+                      max="100"
+                      value={tempLimit}
+                      onChange={(e) => setTempLimit(e.target.value)}
+                      className="w-full h-12 px-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                      placeholder="e.g. 80"
+                    />
+                    <span className="absolute right-4 text-slate-400 font-bold">%</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex space-x-3">
+                <button 
+                  onClick={() => setIsBudgetModalOpen(false)}
+                  className="flex-1 py-3 rounded-xl font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={handleSaveBudgetSettings}
+                  className="flex-1 py-3 rounded-xl font-bold text-white bg-emerald-500 hover:bg-emerald-600 transition-colors shadow-lg shadow-emerald-200 dark:shadow-none"
+                >
+                  Save Settings
                 </button>
               </div>
             </motion.div>

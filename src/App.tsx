@@ -60,6 +60,17 @@ export default function App() {
     const saved = localStorage.getItem(`expense_monthlyBudget_${user}`);
     return saved ? Number(saved) : 50000;
   });
+
+  const [currency, setCurrency] = useState(() => {
+    const user = localStorage.getItem('expense_currentUser') || 'guest';
+    return localStorage.getItem(`expense_currency_${user}`) || 'Rs.';
+  });
+
+  const [budgetAlertLimit, setBudgetAlertLimit] = useState(() => {
+    const user = localStorage.getItem('expense_currentUser') || 'guest';
+    const saved = localStorage.getItem(`expense_budgetAlertLimit_${user}`);
+    return saved ? Number(saved) : 80;
+  });
   
   const [notifications, setNotifications] = useState<AppNotification[]>(() => {
     const user = localStorage.getItem('expense_currentUser') || 'guest';
@@ -88,6 +99,11 @@ export default function App() {
       const savedMonthly = localStorage.getItem(`expense_monthlyBudget_${currentUser}`);
       setMonthlyBudget(savedMonthly ? Number(savedMonthly) : 50000);
 
+      setCurrency(localStorage.getItem(`expense_currency_${currentUser}`) || 'Rs.');
+      
+      const savedLimit = localStorage.getItem(`expense_budgetAlertLimit_${currentUser}`);
+      setBudgetAlertLimit(savedLimit ? Number(savedLimit) : 80);
+
       setUserName(localStorage.getItem(`expense_userName_${currentUser}`) || currentUser.split('@')[0]);
       setUserEmail(currentUser);
       setUserAvatar(localStorage.getItem(`expense_userAvatar_${currentUser}`));
@@ -101,6 +117,8 @@ export default function App() {
   useEffect(() => { if (currentUser) localStorage.setItem(`expense_wallets_${currentUser}`, JSON.stringify(wallets)); }, [wallets, currentUser]);
   useEffect(() => { if (currentUser) localStorage.setItem(`expense_budgets_${currentUser}`, JSON.stringify(budgets)); }, [budgets, currentUser]);
   useEffect(() => { if (currentUser) localStorage.setItem(`expense_monthlyBudget_${currentUser}`, String(monthlyBudget)); }, [monthlyBudget, currentUser]);
+  useEffect(() => { if (currentUser) localStorage.setItem(`expense_currency_${currentUser}`, currency); }, [currency, currentUser]);
+  useEffect(() => { if (currentUser) localStorage.setItem(`expense_budgetAlertLimit_${currentUser}`, String(budgetAlertLimit)); }, [budgetAlertLimit, currentUser]);
   useEffect(() => { localStorage.setItem('expense_biometric', String(biometricEnabled)); }, [biometricEnabled]);
   useEffect(() => { if (currentUser) localStorage.setItem(`expense_notifications_${currentUser}`, JSON.stringify(notifications)); }, [notifications, currentUser]);
   useEffect(() => { 
@@ -157,6 +175,27 @@ export default function App() {
       read: false,
       type: newTx.type === 'income' ? 'success' : 'alert'
     }, ...prev]);
+
+    if (newTx.type === 'expense') {
+      const currentMonthExpenses = transactions
+        .filter(t => t.type === 'expense')
+        .reduce((sum, t) => sum + t.amount, 0) + newTx.amount;
+        
+      const alertThreshold = monthlyBudget * (budgetAlertLimit / 100);
+      
+      if (currentMonthExpenses >= alertThreshold) {
+        setNotifications(prev => [{
+          id: 'alert_' + Date.now().toString(),
+          title: 'Budget Alert',
+          message: `You have used ${Math.round((currentMonthExpenses/monthlyBudget)*100)}% of your monthly budget!`,
+          time: 'Just now',
+          read: false,
+          type: 'warning'
+        }, ...prev]);
+      }
+    }
+    
+    setIsAddModalOpen(false);
   };
 
   const handleAddNewWallet = (newWallet: any) => {
@@ -275,6 +314,10 @@ export default function App() {
                 transactions={transactions}
                 monthlyBudget={monthlyBudget}
                 setMonthlyBudget={setMonthlyBudget}
+                currency={currency}
+                setCurrency={setCurrency}
+                budgetAlertLimit={budgetAlertLimit}
+                setBudgetAlertLimit={setBudgetAlertLimit}
               />
             ) : activeTab === 'transactions' ? (
               <Transactions transactions={transactions} handleDelete={handleDelete} searchQuery={searchQuery} />
@@ -307,7 +350,7 @@ export default function App() {
         
         {/* MODALS AND OVERLAYS */}
         <NotificationsPanel isOpen={isNotificationsOpen} onClose={() => setIsNotificationsOpen(false)} notifications={notifications} setNotifications={setNotifications} />
-        <AddTransactionModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} onAdd={handleAddNewTransaction} />
+        <AddTransactionModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} onAdd={handleAddNewTransaction} wallets={wallets} currency={currency} />
         <AddWalletModal isOpen={isAddWalletOpen} onClose={() => setIsAddWalletOpen(false)} onAdd={handleAddNewWallet} />
         <EditProfileModal 
           isOpen={isEditProfileOpen} 
