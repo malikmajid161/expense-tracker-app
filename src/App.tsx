@@ -303,7 +303,7 @@ export default function App() {
           </header>
 
           {/* CONTENT - Added extra padding bottom to clear the nav bar properly */}
-          <div onScroll={handleScroll} className="flex-1 px-4 py-5 pb-24 z-10 overflow-y-auto overscroll-contain scrollbar-none relative">
+          <div onScroll={handleScroll} className="flex-1 px-4 py-5 pb-24 overflow-y-auto overscroll-contain scrollbar-none relative">
             {activeTab === 'home' ? (
               <Dashboard 
                 totalBalance={totalBalance}
