@@ -137,7 +137,7 @@ CRITICAL INSTRUCTIONS:
               <div className={`rounded-3xl p-4 ${
                 msg.role === 'user' 
                   ? 'bg-indigo-500 text-white rounded-br-sm shadow-md shadow-indigo-200 dark:shadow-none text-sm' 
-                  : 'bg-transparent w-full'
+                  : 'bg-indigo-50/50 dark:bg-slate-800/50 w-full rounded-bl-sm border border-indigo-100/50 dark:border-slate-700/50'
               }`}>
                 {msg.role === 'user' ? (
                   <p>{msg.content}</p>
@@ -145,16 +145,16 @@ CRITICAL INSTRUCTIONS:
                   <div className="prose prose-sm dark:prose-invert prose-indigo max-w-none text-slate-700 dark:text-slate-300">
                     <ReactMarkdown
                       components={{
-                        h3: ({node, ...props}) => <h3 className="text-sm font-bold text-slate-900 dark:text-white mt-4 mb-2 uppercase tracking-wide" {...props} />,
-                        ul: ({node, ...props}) => <ul className="space-y-2 mt-2 mb-4" {...props} />,
+                        h3: ({node, ...props}) => <h3 className="text-sm font-bold text-indigo-900 dark:text-indigo-100 mt-5 mb-3 uppercase tracking-wide bg-indigo-100/50 dark:bg-indigo-900/30 px-3 py-1.5 rounded-lg inline-block" {...props} />,
+                        ul: ({node, ...props}) => <ul className="space-y-3 mt-3 mb-5" {...props} />,
                         li: ({node, ...props}) => (
-                          <li className="flex items-start bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 p-3 rounded-2xl shadow-sm text-sm" {...props}>
-                            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 mr-3 shrink-0" />
-                            <span className="flex-1">{props.children}</span>
+                          <li className="flex items-start bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-700 p-3.5 rounded-2xl shadow-sm text-sm hover:shadow-md transition-shadow" {...props}>
+                            <div className="w-2 h-2 rounded-full bg-indigo-500 mt-1.5 mr-3 shrink-0 shadow-sm shadow-indigo-200 dark:shadow-none" />
+                            <span className="flex-1 font-medium">{props.children}</span>
                           </li>
                         ),
-                        p: ({node, ...props}) => <p className="text-sm leading-relaxed mb-2" {...props} />,
-                        strong: ({node, ...props}) => <strong className="font-extrabold text-indigo-600 dark:text-indigo-400" {...props} />
+                        p: ({node, ...props}) => <p className="text-sm leading-relaxed mb-3" {...props} />,
+                        strong: ({node, ...props}) => <strong className="font-extrabold text-indigo-700 dark:text-indigo-400" {...props} />
                       }}
                     >
                       {msg.content}
@@ -171,7 +171,7 @@ CRITICAL INSTRUCTIONS:
               <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center shrink-0">
                 <Bot size={16} className="text-indigo-500" />
               </div>
-              <div className="p-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-sm rounded-bl-sm">
+              <div className="p-4 rounded-3xl bg-indigo-50/50 dark:bg-slate-800/50 border border-indigo-100/50 dark:border-slate-700/50 rounded-bl-sm">
                 <Loader2 size={20} className="text-indigo-500 animate-spin" />
               </div>
             </div>
@@ -180,8 +180,8 @@ CRITICAL INSTRUCTIONS:
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="p-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-t border-slate-100 dark:border-slate-800 shrink-0 mb-4 rounded-3xl mx-4">
-        <div className="flex items-center space-x-2 bg-slate-100 dark:bg-slate-800 p-1.5 rounded-full">
+      <div className="sticky bottom-0 z-20 p-2 bg-transparent shrink-0 mx-2 mb-2">
+        <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200 dark:border-slate-800 p-2 rounded-full shadow-lg shadow-slate-200/50 dark:shadow-none flex items-center space-x-2">
           <input 
             type="text" 
             value={input}
