@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Fingerprint, ShieldCheck, Mail, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { supabase } from '../supabase';
 
 interface LockScreenProps {
   onUnlock: (email: string) => void;
@@ -26,30 +27,45 @@ export default function LockScreen({ onUnlock }: LockScreenProps) {
     setErrorMsg('');
   }, [mode]);
 
-  const handleBiometricScan = () => {
+  const handleBiometricScan = async () => {
     setIsScanning(true);
     setTimeout(() => {
       setIsScanning(false);
       setIsSuccess(true);
-      const lastUser = localStorage.getItem('fintrack_currentUser') || 'guest@fintrack.com';
+      const lastUser = localStorage.getItem('expense_currentUser') || 'guest@fintrack.com';
       setTimeout(() => onUnlock(lastUser), 800);
     }, 1500);
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
-    const users = JSON.parse(localStorage.getItem('fintrack_users') || '[]');
-    const user = users.find((u: any) => u.email === email && u.password === btoa(password));
     
-    if (user) {
-      onUnlock(email);
-    } else {
-      setErrorMsg('Invalid email or password');
+    // First check Supabase Auth
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        // Fallback to local storage auth if Supabase fails (e.g. offline)
+        const users = JSON.parse(localStorage.getItem('fintrack_users') || '[]');
+        const localUser = users.find((u: any) => u.email === email && u.password === btoa(password));
+        if (localUser) {
+          onUnlock(email);
+        } else {
+          setErrorMsg(error.message || 'Invalid email or password');
+        }
+      } else if (data.user) {
+        onUnlock(data.user.email || email);
+      }
+    } catch (err: any) {
+      setErrorMsg(err.message || 'An error occurred during login');
     }
   };
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
     if (password !== confirmPassword) {
@@ -57,30 +73,51 @@ export default function LockScreen({ onUnlock }: LockScreenProps) {
       return;
     }
     
-    const users = JSON.parse(localStorage.getItem('fintrack_users') || '[]');
-    if (users.find((u: any) => u.email === email)) {
-      setErrorMsg('Account already exists with this email');
-      return;
-    }
+    try {
+      // Register with Supabase
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
 
-    users.push({ email, password: btoa(password) });
-    localStorage.setItem('fintrack_users', JSON.stringify(users));
-    
-    onUnlock(email);
+      if (error) {
+        setErrorMsg(error.message);
+        return;
+      }
+
+      // Also save to local storage as a backup
+      const users = JSON.parse(localStorage.getItem('fintrack_users') || '[]');
+      if (!users.find((u: any) => u.email === email)) {
+        users.push({ email, password: btoa(password) });
+        localStorage.setItem('fintrack_users', JSON.stringify(users));
+      }
+
+      if (data.user) {
+        // Supabase requires email verification by default, but we'll unlock immediately for smooth UX
+        onUnlock(data.user.email || email);
+      } else {
+         // Fallback if no user returned
+         onUnlock(email);
+      }
+    } catch (err: any) {
+      setErrorMsg(err.message || 'An error occurred during registration');
+    }
   };
 
-  const handleForgotPassword = (e: React.FormEvent) => {
+  const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
-    const users = JSON.parse(localStorage.getItem('fintrack_users') || '[]');
-    const user = users.find((u: any) => u.email === email);
     
-    if (user) {
-      // Simulate sending email
-      alert(`Simulation: An email has been sent to ${email} (Local password hash: ${user.password})`);
-      setMode('login');
-    } else {
-      setErrorMsg('Email not found in local records');
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      if (error) {
+        setErrorMsg(error.message);
+      } else {
+        alert(`Reset instructions sent to ${email} via Supabase!`);
+        setMode('login');
+      }
+    } catch (err: any) {
+      setErrorMsg(err.message || 'An error occurred');
     }
   };
 
