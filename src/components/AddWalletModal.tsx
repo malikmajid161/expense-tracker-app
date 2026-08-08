@@ -14,6 +14,21 @@ export default function AddWalletModal({ isOpen, onClose, onAdd }: AddWalletModa
   const [type, setType] = useState<'bank' | 'mobile' | 'cash'>('bank');
   const [balance, setBalance] = useState('');
 
+  const handleTypeChange = (newType: 'bank' | 'mobile' | 'cash') => {
+    setType(newType);
+    if (newType === 'cash' && !name) {
+      setName('Cash');
+    } else if (name === 'Cash' && newType !== 'cash') {
+      setName('');
+    }
+  };
+
+  const getPlaceholder = () => {
+    if (type === 'bank') return "e.g. Standard Chartered";
+    if (type === 'mobile') return "e.g. JazzCash or EasyPaisa";
+    return "e.g. Petty Cash";
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name) return;
@@ -73,13 +88,13 @@ export default function AddWalletModal({ isOpen, onClose, onAdd }: AddWalletModa
                 
                 {/* Wallet Type */}
                 <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl">
-                  <button type="button" onClick={() => setType('bank')} className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${type === 'bank' ? 'bg-white dark:bg-slate-700 text-indigo-500 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}>
+                  <button type="button" onClick={() => handleTypeChange('bank')} className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${type === 'bank' ? 'bg-white dark:bg-slate-700 text-indigo-500 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}>
                     Bank
                   </button>
-                  <button type="button" onClick={() => setType('mobile')} className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${type === 'mobile' ? 'bg-white dark:bg-slate-700 text-rose-500 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}>
+                  <button type="button" onClick={() => handleTypeChange('mobile')} className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${type === 'mobile' ? 'bg-white dark:bg-slate-700 text-rose-500 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}>
                     Mobile
                   </button>
-                  <button type="button" onClick={() => setType('cash')} className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${type === 'cash' ? 'bg-white dark:bg-slate-700 text-emerald-500 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}>
+                  <button type="button" onClick={() => handleTypeChange('cash')} className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${type === 'cash' ? 'bg-white dark:bg-slate-700 text-emerald-500 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}>
                     Cash
                   </button>
                 </div>
@@ -91,7 +106,7 @@ export default function AddWalletModal({ isOpen, onClose, onAdd }: AddWalletModa
                     type="text" 
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="e.g. Standard Chartered"
+                    placeholder={getPlaceholder()}
                     required
                     className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3.5 text-sm font-bold text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                   />

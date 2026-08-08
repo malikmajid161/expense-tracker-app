@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Plus, CreditCard, ChevronRight, Activity, Smartphone, Landmark } from 'lucide-react';
+import { Plus, CreditCard, ChevronRight, Activity, Smartphone, Landmark, Trash2 } from 'lucide-react';
 import type { Wallet, Transaction } from '../types';
 
 interface WalletsViewProps {
@@ -8,6 +8,9 @@ interface WalletsViewProps {
   transactions: Transaction[];
   openAddWallet?: () => void;
   searchQuery?: string;
+  setActiveTab?: (tab: string) => void;
+  setSearchQuery?: (query: string) => void;
+  onDeleteWallet?: (id: string) => void;
 }
 
 const containerVariants = {
@@ -20,7 +23,7 @@ const itemVariants = {
   show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 400, damping: 30 } }
 };
 
-export default function WalletsView({ wallets, transactions, openAddWallet, searchQuery = '' }: WalletsViewProps) {
+export default function WalletsView({ wallets, transactions, openAddWallet, searchQuery = '', setActiveTab, setSearchQuery, onDeleteWallet }: WalletsViewProps) {
   const formatCurrency = (val: number) => {
     return new Intl.NumberFormat('en-PK', {
       style: 'currency',
@@ -83,7 +86,15 @@ export default function WalletsView({ wallets, transactions, openAddWallet, sear
             const recentTxs = getWalletTransactions(wallet.name);
             return (
               <motion.div variants={itemVariants} key={wallet.id} className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden group">
-                <div className="p-5 flex items-center justify-between cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                <div 
+                  className="p-5 flex items-center justify-between cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                  onClick={() => {
+                    if (setActiveTab && setSearchQuery) {
+                      setSearchQuery(wallet.name);
+                      setActiveTab('transactions');
+                    }
+                  }}
+                >
                   <div className="flex items-center space-x-4">
                     <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white bg-gradient-to-br ${wallet.color} shadow-sm`}>
                       {getWalletIcon(wallet.type)}
@@ -95,6 +106,17 @@ export default function WalletsView({ wallets, transactions, openAddWallet, sear
                   </div>
                   <div className="text-right flex items-center space-x-3">
                     <p className="text-base font-extrabold text-slate-900 dark:text-white">{formatCurrency(wallet.balance)}</p>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent opening transactions
+                        if (window.confirm(`Are you sure you want to delete ${wallet.name}? This will also delete all its transactions.`)) {
+                          onDeleteWallet?.(wallet.id);
+                        }
+                      }}
+                      className="p-1.5 rounded-full text-slate-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/30 transition-colors"
+                    >
+                      <Trash2 size={16} />
+                    </button>
                     <ChevronRight size={18} className="text-slate-300 group-hover:text-indigo-500 transition-colors" />
                   </div>
                 </div>

@@ -13,6 +13,7 @@ interface DashboardProps {
   transactions: Transaction[];
   budgets: Budget[];
   monthlyBudget: number;
+  currency: string;
   setActiveTab: (tab: string) => void;
   handleDelete: (id: string) => void;
 }
@@ -33,15 +34,14 @@ const itemVariants = {
 
 export default function Dashboard({
   totalBalance, currentMonthIncome, currentMonthExpense, dailyAvgExpense,
-  wallets, transactions, budgets, monthlyBudget, setActiveTab, handleDelete
+  wallets, transactions, budgets, monthlyBudget, currency, setActiveTab, handleDelete
 }: DashboardProps) {
 
   const formatCurrency = (val: number) => {
-    return new Intl.NumberFormat('en-PK', {
-      style: 'currency',
-      currency: 'PKR',
+    const formatted = new Intl.NumberFormat('en-US', {
       maximumFractionDigits: 0
-    }).format(val).replace('PKR', 'Rs.');
+    }).format(val);
+    return `${currency} ${formatted}`;
   };
 
   const getCategoryIcon = (catName: string) => {
@@ -72,9 +72,9 @@ export default function Dashboard({
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center space-x-2 text-indigo-200">
                 <Wallet className="w-5 h-5" />
-                <span className="text-sm font-semibold tracking-wide uppercase">Total Balance</span>
+                <span className="text-sm font-semibold tracking-wide uppercase">Available Funds</span>
               </div>
-              <span className="px-3 py-1 bg-white/10 rounded-full text-xs font-medium backdrop-blur-sm border border-white/10">PKR</span>
+              <span className="px-3 py-1 bg-white/10 rounded-full text-xs font-medium backdrop-blur-sm border border-white/10">{currency.replace('.', '')}</span>
             </div>
             
             <h2 className="text-4xl font-extrabold tracking-tight mb-8">
@@ -212,7 +212,7 @@ export default function Dashboard({
           {/* Monthly Budgets Mini Widget */}
           <motion.div variants={itemVariants} className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-sm border border-slate-100 dark:border-slate-800 mb-6">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-lg font-bold text-slate-800 dark:text-white">Budget Limits</h3>
+              <h3 className="text-lg font-bold text-slate-800 dark:text-white">Spending Limits</h3>
               <button className="text-slate-400 hover:text-indigo-600 transition-colors">
                 <Info size={18} />
               </button>
@@ -222,7 +222,7 @@ export default function Dashboard({
               <div>
                 <div className="flex justify-between items-center text-sm font-semibold mb-2 gap-2">
                   <span className="flex items-center text-slate-700 dark:text-slate-300 shrink-0">
-                    <span className="mr-2 opacity-80">💰</span> <span className="truncate">Overall Budget</span>
+                    <span className="mr-2 opacity-80">💰</span> <span className="truncate">Monthly Spending Limit</span>
                   </span>
                   <span className="text-slate-900 dark:text-white text-right whitespace-nowrap flex items-center justify-end">
                     <span className="text-slate-400 font-medium text-[10px] mr-1.5 uppercase tracking-wider">Spent</span>
@@ -239,7 +239,7 @@ export default function Dashboard({
                   />
                 </div>
                 <div className="mt-2 text-[11px] font-medium text-slate-500 dark:text-slate-400 flex justify-between items-center">
-                  <span>{currentMonthExpense >= monthlyBudget ? 'Budget Exceeded!' : 'Remaining Budget'}</span>
+                  <span>{currentMonthExpense >= monthlyBudget ? 'Limit Exceeded!' : 'Remaining Limit'}</span>
                   <span className={currentMonthExpense >= monthlyBudget ? 'text-rose-500 font-bold' : 'text-emerald-600 dark:text-emerald-400 font-bold'}>
                     {formatCurrency(Math.max(0, monthlyBudget - currentMonthExpense))}
                   </span>

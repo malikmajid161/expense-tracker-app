@@ -58,7 +58,7 @@ export default function App() {
   const [monthlyBudget, setMonthlyBudget] = useState(() => {
     const user = localStorage.getItem('expense_currentUser') || 'guest';
     const saved = localStorage.getItem(`expense_monthlyBudget_${user}`);
-    return saved ? Number(saved) : 50000;
+    return saved ? Number(saved) : 0;
   });
 
   const [currency, setCurrency] = useState(() => {
@@ -97,7 +97,7 @@ export default function App() {
       else setBudgets(INITIAL_BUDGETS);
 
       const savedMonthly = localStorage.getItem(`expense_monthlyBudget_${currentUser}`);
-      setMonthlyBudget(savedMonthly ? Number(savedMonthly) : 50000);
+      setMonthlyBudget(savedMonthly ? Number(savedMonthly) : 0);
 
       setCurrency(localStorage.getItem(`expense_currency_${currentUser}`) || 'Rs.');
       
@@ -200,6 +200,20 @@ export default function App() {
 
   const handleAddNewWallet = (newWallet: any) => {
     setWallets([...wallets, newWallet]);
+    
+    if (newWallet.balance > 0) {
+      const initialTx = {
+        id: Date.now().toString() + '_initial',
+        type: 'income',
+        amount: newWallet.balance,
+        category: 'Salary',
+        note: 'Initial Balance',
+        date: new Date().toISOString().split('T')[0],
+        wallet: newWallet.name
+      };
+      setTransactions(prev => [initialTx, ...prev]);
+    }
+
     setNotifications(prev => [{
       id: Date.now().toString(),
       title: 'New Wallet Created',
@@ -211,7 +225,39 @@ export default function App() {
   };
 
   const handleDelete = (id: string) => {
+    const txToDelete = transactions.find(t => t.id === id);
+    if (!txToDelete) return;
+
     setTransactions(prev => prev.filter(t => t.id !== id));
+    
+    // Update wallet balance when a transaction is deleted
+    setWallets(prev => prev.map(w => {
+      if (w.name === txToDelete.wallet) {
+        return {
+          ...w,
+          balance: txToDelete.type === 'income' ? w.balance - txToDelete.amount : w.balance + txToDelete.amount
+        };
+      }
+      return w;
+    }));
+  };
+
+  const handleDeleteWallet = (id: string) => {
+    const walletToDelete = wallets.find(w => w.id === id);
+    if (!walletToDelete) return;
+    
+    // Delete the wallet and all its associated transactions to prevent orphaned data
+    setWallets(prev => prev.filter(w => w.id !== id));
+    setTransactions(prev => prev.filter(t => t.wallet !== walletToDelete.name));
+    
+    setNotifications(prev => [{
+      id: Date.now().toString(),
+      title: 'Wallet Deleted',
+      message: `${walletToDelete.name} has been removed.`,
+      time: 'Just now',
+      read: false,
+      type: 'alert'
+    }, ...prev]);
   };
 
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -266,7 +312,7 @@ export default function App() {
                 <h1 className={`text-2xl font-extrabold tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
                   {activeTab === 'home' ? 'Overview' : activeTab === 'settings' ? 'Profile' : activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
                 </h1>
-                <p className="text-slate-500 text-xs font-medium mt-0.5">Track and manage your finances</p>
+                <p className="text-slate-500 text-xs font-medium mt-0.5">Manage your wealth effectively</p>
               </div>
             )}
             
@@ -299,6 +345,7 @@ export default function App() {
                 transactions={transactions}
                 budgets={budgets}
                 monthlyBudget={monthlyBudget}
+                currency={currency}
                 setActiveTab={setActiveTab}
                 handleDelete={handleDelete}
               />
@@ -327,7 +374,15 @@ export default function App() {
             ) : activeTab === 'ai' ? (
               <AiAssistant transactions={transactions} wallets={wallets} budgets={budgets} userName={userName} monthlyBudget={monthlyBudget} />
             ) : activeTab === 'wallets' ? (
-              <WalletsView wallets={wallets} transactions={transactions} openAddWallet={() => setIsAddWalletOpen(true)} searchQuery={searchQuery} />
+              <WalletsView 
+                wallets={wallets} 
+                transactions={transactions} 
+                openAddWallet={() => setIsAddWalletOpen(true)} 
+                searchQuery={searchQuery}
+                setActiveTab={setActiveTab}
+                setSearchQuery={setSearchQuery}
+                onDeleteWallet={handleDeleteWallet}
+              />
             ) : (
               <div className="py-10 flex flex-col items-center justify-center text-center space-y-4">
                 <div className="w-20 h-20 bg-indigo-50 text-indigo-500 rounded-2xl flex items-center justify-center mb-2 shadow-sm">

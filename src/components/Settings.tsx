@@ -56,7 +56,7 @@ export default function Settings({
       setCurrency(tempCurrency);
       setBudgetAlertLimit(l);
       setIsBudgetModalOpen(false);
-      showToast('Budget settings updated successfully!');
+      showToast('Spending limit updated successfully!');
     } else {
       alert("Please enter valid positive numbers. Limit must be 1-100.");
     }
@@ -116,7 +116,6 @@ export default function Settings({
             </div>
             <div>
               <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">{userName}</h3>
-              <p className="text-xs font-medium text-slate-400">Free Plan</p>
             </div>
           </div>
           <button onClick={openEditProfile} className="p-2 bg-slate-50 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 rounded-xl hover:bg-indigo-50 dark:hover:bg-slate-700 transition-colors">
@@ -153,8 +152,8 @@ export default function Settings({
                   <Wallet size={20} />
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-semibold text-slate-700 dark:text-slate-300">Budget Settings</span>
-                  <span className="text-xs text-slate-400">Budget: {currency} {monthlyBudget} (Alert at {budgetAlertLimit}%)</span>
+                  <span className="font-semibold text-slate-700 dark:text-slate-300">Spending Limit Settings</span>
+                  <span className="text-xs text-slate-400">Limit: {currency} {monthlyBudget} (Alert at {budgetAlertLimit}%)</span>
                 </div>
               </div>
               <ChevronRight size={18} className="text-slate-300 group-hover:text-indigo-500 transition-colors" />
@@ -334,11 +333,11 @@ export default function Settings({
               <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-500 rounded-2xl flex items-center justify-center mb-4 mx-auto shadow-sm">
                 <Wallet size={32} />
               </div>
-              <h3 className="text-xl font-extrabold text-center text-slate-900 dark:text-white mb-6">Budget Settings</h3>
+              <h3 className="text-xl font-extrabold text-center text-slate-900 dark:text-white mb-6">Spending Limit Settings</h3>
               
               <div className="space-y-4 mb-8">
                 <div>
-                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide ml-1">Monthly Budget</label>
+                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide ml-1">Monthly Spending Limit</label>
                   <div className="mt-1.5 relative flex items-center">
                     <input 
                       type="text"
@@ -368,8 +367,8 @@ export default function Settings({
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide ml-1">Alert Notification Threshold (%)</label>
-                  <p className="text-[10px] text-slate-400 dark:text-slate-500 ml-1 mb-2">We will notify you when your expenses reach this percentage of your budget.</p>
+                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide ml-1">Spending Alert Threshold (%)</label>
+                  <p className="text-[10px] text-slate-400 dark:text-slate-500 ml-1 mb-2">We will notify you when your expenses reach this percentage of your limit.</p>
                   <div className="mt-1.5 relative flex items-center">
                     <input 
                       type="number"
