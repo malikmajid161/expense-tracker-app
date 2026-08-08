@@ -101,11 +101,14 @@ export default function WalletsView({ wallets, transactions, openAddWallet, sear
                     </div>
                     <div>
                       <h4 className="text-base font-bold text-slate-900 dark:text-white">{wallet.name}</h4>
-                      <p className="text-xs font-semibold text-slate-400 capitalize">{wallet.type} Account</p>
+                      <div className="flex items-center space-x-2 mt-0.5">
+                        <p className="text-sm font-extrabold text-slate-900 dark:text-white">{formatCurrency(wallet.balance)}</p>
+                        <span className="text-[10px] text-slate-300 dark:text-slate-600">•</span>
+                        <p className="text-[11px] font-semibold text-slate-400 capitalize">{wallet.type} Account</p>
+                      </div>
                     </div>
                   </div>
                   <div className="text-right flex items-center space-x-3">
-                    <p className="text-base font-extrabold text-slate-900 dark:text-white">{formatCurrency(wallet.balance)}</p>
                     <button 
                       onClick={(e) => {
                         e.stopPropagation(); // Prevent opening transactions

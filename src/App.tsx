@@ -13,6 +13,7 @@ import EditProfileModal from './components/EditProfileModal';
 import AddWalletModal from './components/AddWalletModal';
 import LockScreen from './components/LockScreen';
 import AiAssistant from './components/AiAssistant';
+import { App as CapacitorApp } from '@capacitor/app';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('home');
@@ -135,6 +136,24 @@ export default function App() {
     setIsSearching(false);
     setSearchQuery('');
   }, [activeTab]);
+
+  // Capacitor Hardware Back Button Handler
+  useEffect(() => {
+    const backButtonListener = CapacitorApp.addListener('backButton', () => {
+      if (isAddModalOpen) setIsAddModalOpen(false);
+      else if (isAddWalletOpen) setIsAddWalletOpen(false);
+      else if (isEditProfileOpen) setIsEditProfileOpen(false);
+      else if (isNotificationsOpen) setIsNotificationsOpen(false);
+      else if (activeTab !== 'home') setActiveTab('home');
+      else {
+        CapacitorApp.exitApp();
+      }
+    });
+
+    return () => {
+      backButtonListener.then(listener => listener.remove());
+    };
+  }, [isAddModalOpen, isAddWalletOpen, isEditProfileOpen, isNotificationsOpen, activeTab]);
 
   const totalBalance = useMemo(() => wallets.reduce((acc, w) => acc + w.balance, 0), [wallets]);
   
