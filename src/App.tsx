@@ -279,6 +279,21 @@ export default function App() {
     }, ...prev]);
   };
 
+  const sortedTransactions = useMemo(() => {
+    return [...transactions].sort((a, b) => {
+      // Sort by date descending
+      if (a.date !== b.date) {
+        return b.date.localeCompare(a.date);
+      }
+      // If same date, sort by ID descending (which is timestamp)
+      return b.id.localeCompare(a.id);
+    });
+  }, [transactions]);
+
+  const sortedWallets = useMemo(() => {
+    return [...wallets].sort((a, b) => b.balance - a.balance);
+  }, [wallets]);
+
   const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
@@ -329,7 +344,7 @@ export default function App() {
             ) : (
               <div>
                 <h1 className={`text-2xl font-extrabold tracking-tight ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-                  {activeTab === 'home' ? 'Overview' : activeTab === 'settings' ? 'Profile' : activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
+                  {activeTab === 'home' ? 'Dashboard' : activeTab === 'settings' ? 'Profile' : activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
                 </h1>
                 <p className="text-slate-500 text-xs font-medium mt-0.5">Manage your wealth effectively</p>
               </div>
@@ -360,8 +375,8 @@ export default function App() {
                 currentMonthIncome={currentMonthIncome}
                 currentMonthExpense={currentMonthExpense}
                 dailyAvgExpense={dailyAvgExpense}
-                wallets={wallets}
-                transactions={transactions}
+                wallets={sortedWallets}
+                transactions={sortedTransactions}
                 budgets={budgets}
                 monthlyBudget={monthlyBudget}
                 currency={currency}
@@ -378,7 +393,7 @@ export default function App() {
                 setBiometricEnabled={setBiometricEnabled}
                 openEditProfile={() => setIsEditProfileOpen(true)}
                 openNotifications={() => setIsNotificationsOpen(true)}
-                transactions={transactions}
+                transactions={sortedTransactions}
                 monthlyBudget={monthlyBudget}
                 setMonthlyBudget={setMonthlyBudget}
                 currency={currency}
@@ -387,15 +402,15 @@ export default function App() {
                 setBudgetAlertLimit={setBudgetAlertLimit}
               />
             ) : activeTab === 'transactions' ? (
-              <Transactions transactions={transactions} handleDelete={handleDelete} searchQuery={searchQuery} />
+              <Transactions transactions={sortedTransactions} handleDelete={handleDelete} searchQuery={searchQuery} />
             ) : activeTab === 'analytics' ? (
-              <Analytics transactions={transactions} />
+              <Analytics transactions={sortedTransactions} />
             ) : activeTab === 'ai' ? (
-              <AiAssistant transactions={transactions} wallets={wallets} budgets={budgets} userName={userName} monthlyBudget={monthlyBudget} />
+              <AiAssistant transactions={sortedTransactions} wallets={sortedWallets} budgets={budgets} userName={userName} monthlyBudget={monthlyBudget} />
             ) : activeTab === 'wallets' ? (
               <WalletsView 
-                wallets={wallets} 
-                transactions={transactions} 
+                wallets={sortedWallets}
+                transactions={sortedTransactions}
                 openAddWallet={() => setIsAddWalletOpen(true)} 
                 searchQuery={searchQuery}
                 setActiveTab={setActiveTab}
