@@ -153,8 +153,8 @@ export default function Settings({
                   <Wallet size={20} />
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-semibold text-slate-700 dark:text-slate-300">Currency & Alerts</span>
-                  <span className="text-xs text-slate-400">Current: {currency} (Alert at {budgetAlertLimit}%)</span>
+                  <span className="font-semibold text-slate-700 dark:text-slate-300">Budget Settings</span>
+                  <span className="text-xs text-slate-400">Budget: {currency} {monthlyBudget} (Alert at {budgetAlertLimit}%)</span>
                 </div>
               </div>
               <ChevronRight size={18} className="text-slate-300 group-hover:text-indigo-500 transition-colors" />
@@ -337,6 +337,19 @@ export default function Settings({
               <h3 className="text-xl font-extrabold text-center text-slate-900 dark:text-white mb-6">Budget Settings</h3>
               
               <div className="space-y-4 mb-8">
+                <div>
+                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide ml-1">Monthly Budget</label>
+                  <div className="mt-1.5 relative flex items-center">
+                    <input 
+                      type="text"
+                      value={tempBudget}
+                      onChange={(e) => setTempBudget(e.target.value)}
+                      className="w-full h-12 px-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                      placeholder="e.g. 50000"
+                    />
+                  </div>
+                </div>
+
                 <div>
                   <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide ml-1">App Currency</label>
                   <div className="mt-1.5 relative flex items-center">

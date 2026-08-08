@@ -227,21 +227,21 @@ export default function Dashboard({
                   <span className="text-slate-900 dark:text-white text-right whitespace-nowrap flex items-center justify-end">
                     <span className="text-slate-400 font-medium text-[10px] mr-1.5 uppercase tracking-wider">Spent</span>
                     {formatCurrency(currentMonthExpense)} 
-                    <span className="text-slate-400 font-medium text-[10px] ml-1">/ {formatCurrency(totalBalance + currentMonthExpense)}</span>
+                    <span className="text-slate-400 font-medium text-[10px] ml-1">/ {formatCurrency(monthlyBudget)}</span>
                   </span>
                 </div>
                 <div className="h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden flex">
                   <motion.div 
                     initial={{ width: 0 }}
-                    animate={{ width: `${Math.min(100, Math.round((currentMonthExpense / ((totalBalance + currentMonthExpense) || 1)) * 100))}%` }}
+                    animate={{ width: `${Math.min(100, Math.round((currentMonthExpense / (monthlyBudget || 1)) * 100))}%` }}
                     transition={{ duration: 1, ease: 'easeOut', delay: 0.2 }}
-                    className={`h-full rounded-full ${currentMonthExpense >= (totalBalance + currentMonthExpense) ? 'bg-rose-500' : (currentMonthExpense / ((totalBalance + currentMonthExpense) || 1)) > 0.8 ? 'bg-amber-400' : 'bg-emerald-500'}`}
+                    className={`h-full rounded-full ${currentMonthExpense >= monthlyBudget ? 'bg-rose-500' : (currentMonthExpense / (monthlyBudget || 1)) > 0.8 ? 'bg-amber-400' : 'bg-emerald-500'}`}
                   />
                 </div>
                 <div className="mt-2 text-[11px] font-medium text-slate-500 dark:text-slate-400 flex justify-between items-center">
-                  <span>{currentMonthExpense >= (totalBalance + currentMonthExpense) ? 'Budget Exceeded!' : 'Remaining Budget'}</span>
-                  <span className={currentMonthExpense >= (totalBalance + currentMonthExpense) ? 'text-rose-500 font-bold' : 'text-emerald-600 dark:text-emerald-400 font-bold'}>
-                    {formatCurrency(totalBalance)}
+                  <span>{currentMonthExpense >= monthlyBudget ? 'Budget Exceeded!' : 'Remaining Budget'}</span>
+                  <span className={currentMonthExpense >= monthlyBudget ? 'text-rose-500 font-bold' : 'text-emerald-600 dark:text-emerald-400 font-bold'}>
+                    {formatCurrency(Math.max(0, monthlyBudget - currentMonthExpense))}
                   </span>
                 </div>
               </div>
