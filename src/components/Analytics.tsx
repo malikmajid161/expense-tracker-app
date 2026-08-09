@@ -14,7 +14,7 @@ const containerVariants = {
 
 const itemVariants = {
   hidden: { opacity: 0, y: 15 },
-  show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 400, damping: 30 } }
+  show: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 400, damping: 30 } }
 };
 
 const CHART_COLORS = ['#6366f1', '#f43f5e', '#fbbf24', '#10b981', '#a855f7', '#64748b'];
