@@ -1,3 +1,5 @@
+import { useContext } from 'react';
+import { CurrencyContext } from '../currency';
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Check } from 'lucide-react';
@@ -10,14 +12,15 @@ interface AddWalletModalProps {
 }
 
 export default function AddWalletModal({ isOpen, onClose, onAdd }: AddWalletModalProps) {
+  const currency = useContext(CurrencyContext);
   const [name, setName] = useState('');
   const [type, setType] = useState<'bank' | 'mobile' | 'cash'>('bank');
   const [balance, setBalance] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name) return;
-    
+    if (!name.trim() || !Number.isFinite(Number(balance))) return;
+
     // Auto assign colors based on type
     let color = 'from-indigo-500 to-purple-600';
     let icon = '🏦';
@@ -31,13 +34,13 @@ export default function AddWalletModal({ isOpen, onClose, onAdd }: AddWalletModa
 
     onAdd({
       id: Date.now().toString(),
-      name,
+      name: name.trim(),
       type,
       balance: Number(balance) || 0,
       color,
       icon
     });
-    
+
     setName('');
     setBalance('');
     onClose();
@@ -47,14 +50,14 @@ export default function AddWalletModal({ isOpen, onClose, onAdd }: AddWalletModa
     <AnimatePresence>
       {isOpen && (
         <>
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
             className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm z-[80] rounded-b-[3rem] md:rounded-[2.5rem]"
           />
-          <motion.div 
+          <motion.div
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
@@ -63,14 +66,14 @@ export default function AddWalletModal({ isOpen, onClose, onAdd }: AddWalletModa
           >
             <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-800">
               <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">Add New Wallet</h3>
-              <button onClick={onClose} className="p-2 bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-white rounded-full transition-colors">
+              <button aria-label="Close dialog" onClick={onClose} className="p-2 bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-white rounded-full transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
-            
+
             <div className="p-6">
               <form id="add-wallet-form" onSubmit={handleSubmit} className="space-y-6">
-                
+
                 {/* Wallet Type */}
                 <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl">
                   <button type="button" onClick={() => setType('bank')} className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${type === 'bank' ? 'bg-white dark:bg-slate-700 text-indigo-500 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}>
@@ -87,8 +90,8 @@ export default function AddWalletModal({ isOpen, onClose, onAdd }: AddWalletModa
                 {/* Wallet Name */}
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Wallet Name</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="e.g. Standard Chartered"
@@ -99,9 +102,9 @@ export default function AddWalletModal({ isOpen, onClose, onAdd }: AddWalletModa
 
                 {/* Initial Balance */}
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Initial Balance (Rs)</label>
-                  <input 
-                    type="number" 
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Initial Balance ({currency})</label>
+                  <input
+                    type="number" step="0.01"
                     value={balance}
                     onChange={(e) => setBalance(e.target.value)}
                     placeholder="0"
@@ -114,8 +117,8 @@ export default function AddWalletModal({ isOpen, onClose, onAdd }: AddWalletModa
             </div>
 
             <div className="p-6 border-t border-slate-100 dark:border-slate-800">
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 form="add-wallet-form"
                 className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-600/30 flex items-center justify-center transition-all active:scale-95"
               >

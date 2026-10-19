@@ -1,4 +1,4 @@
-import React from 'react';
+import { useMoney } from '../currency';
 import { motion } from 'framer-motion';
 import { Plus, CreditCard, ChevronRight, Activity, Smartphone, Landmark } from 'lucide-react';
 import type { Wallet, Transaction } from '../types';
@@ -17,17 +17,11 @@ const containerVariants = {
 
 const itemVariants = {
   hidden: { opacity: 0, y: 15 },
-  show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 400, damping: 30 } }
+  show: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 400, damping: 30 } }
 };
 
 export default function WalletsView({ wallets, transactions, openAddWallet, searchQuery = '' }: WalletsViewProps) {
-  const formatCurrency = (val: number) => {
-    return new Intl.NumberFormat('en-PK', {
-      style: 'currency',
-      currency: 'PKR',
-      maximumFractionDigits: 0
-    }).format(val).replace('PKR', 'Rs.');
-  };
+  const formatCurrency = useMoney();
 
   const totalBalance = wallets.reduce((acc, w) => acc + w.balance, 0);
 
@@ -43,13 +37,13 @@ export default function WalletsView({ wallets, transactions, openAddWallet, sear
     }
   };
 
-  const filteredWallets = wallets.filter(w => 
-    w.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+  const filteredWallets = wallets.filter(w =>
+    w.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     w.type.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
-    <motion.div 
+    <motion.div
       className="max-w-md mx-auto space-y-6"
       variants={containerVariants}
       initial="hidden"
@@ -98,7 +92,7 @@ export default function WalletsView({ wallets, transactions, openAddWallet, sear
                     <ChevronRight size={18} className="text-slate-300 group-hover:text-indigo-500 transition-colors" />
                   </div>
                 </div>
-                
+
                 {/* Mini recent history for the wallet */}
                 {recentTxs.length > 0 && (
                   <div className="bg-slate-50/50 dark:bg-slate-800/30 border-t border-slate-100 dark:border-slate-800 px-5 py-3">

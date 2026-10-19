@@ -14,7 +14,7 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
-  
+
   .glass-card {
     background: rgba(255, 255, 255, 0.7);
     backdrop-filter: blur(16px);
@@ -22,7 +22,7 @@
     border: 1px solid rgba(255, 255, 255, 0.4);
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
   }
-  
+
   .glass-card-dark {
     background: rgba(15, 23, 42, 0.7);
     backdrop-filter: blur(16px);
@@ -42,3 +42,21 @@
 * {
   transition: background-color 0.3s ease, border-color 0.3s ease, color 0.2s ease;
 }
+
+@custom-variant dark (&:where(.dark, .dark *));
+@theme { --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+html, body, #root { margin: 0; min-width: 320px; height: 100%; font-family: var(--font-sans); line-height: 1.5; }
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid #818cf8; outline-offset: 3px; }
+button { min-height: 44px; }
+nav { padding-bottom: max(8px, env(safe-area-inset-bottom)); }
+main { min-height: 0; }
+.text-\[10px\], .text-\[9px\] { font-size: 0.75rem; }
+@media (min-width: 768px) {
+  header { padding: 24px 32px; }
+  main > div.overflow-y-auto { padding: 24px 32px 120px; }
+  nav { padding-left: 32px; padding-right: 32px; }
+  [class*="z-[90]"] { max-width: 560px; margin-inline: auto; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }

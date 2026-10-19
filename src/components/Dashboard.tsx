@@ -1,4 +1,4 @@
-import React from 'react';
+import { useMoney } from '../currency';
 import { Wallet, ArrowDownLeft, ArrowUpRight, ChevronRight, Plus, Info, Sparkles, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { Transaction, Wallet as WalletType, Budget } from '../types';
@@ -28,7 +28,7 @@ const containerVariants = {
 
 const itemVariants = {
   hidden: { opacity: 0, y: 15 },
-  show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 400, damping: 30 } }
+  show: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 400, damping: 30 } }
 };
 
 export default function Dashboard({
@@ -36,26 +36,20 @@ export default function Dashboard({
   wallets, transactions, budgets, monthlyBudget, setActiveTab, handleDelete
 }: DashboardProps) {
 
-  const formatCurrency = (val: number) => {
-    return new Intl.NumberFormat('en-PK', {
-      style: 'currency',
-      currency: 'PKR',
-      maximumFractionDigits: 0
-    }).format(val).replace('PKR', 'Rs.');
-  };
+  const formatCurrency = useMoney();
 
   const getCategoryIcon = (catName: string) => {
     const cat = CATEGORIES.find(c => c.name === catName);
     return cat ? cat.icon : '🏷️';
   };
-  
+
   const getCategoryColor = (catName: string) => {
     const cat = CATEGORIES.find(c => c.name === catName);
     return cat ? cat.color : 'bg-slate-100 text-slate-700';
   };
 
   return (
-    <motion.div 
+    <motion.div
       className="max-w-7xl mx-auto space-y-8"
       variants={containerVariants}
       initial="hidden"
@@ -67,20 +61,20 @@ export default function Dashboard({
         <motion.div variants={itemVariants} className="relative overflow-hidden rounded-[2rem] bg-slate-900 dark:bg-black text-white p-7 shadow-2xl shadow-indigo-900/20 dark:shadow-none group hover:-translate-y-1 transition-all duration-300">
           <div className="absolute -right-10 -top-10 w-40 h-40 bg-indigo-500 rounded-full blur-[60px] opacity-40 group-hover:opacity-60 transition-opacity" />
           <div className="absolute -left-10 -bottom-10 w-40 h-40 bg-purple-500 rounded-full blur-[60px] opacity-40 group-hover:opacity-60 transition-opacity" />
-          
+
           <div className="relative z-10">
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center space-x-2 text-indigo-200">
                 <Wallet className="w-5 h-5" />
                 <span className="text-sm font-semibold tracking-wide uppercase">Total Balance</span>
               </div>
-              <span className="px-3 py-1 bg-white/10 rounded-full text-xs font-medium backdrop-blur-sm border border-white/10">PKR</span>
+              <span className="px-3 py-1 bg-white/10 rounded-full text-xs font-medium backdrop-blur-sm border border-white/10">{formatCurrency(0).split(' ')[0]}</span>
             </div>
-            
+
             <h2 className="text-4xl font-extrabold tracking-tight mb-8">
               {formatCurrency(totalBalance)}
             </h2>
-            
+
             <div className="flex items-center justify-between pt-5 border-t border-white/10">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30">
@@ -109,21 +103,21 @@ export default function Dashboard({
         <motion.div variants={itemVariants} className="flex flex-col min-w-0">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-bold text-slate-800 dark:text-white">Your Wallets</h3>
-            <button 
+            <button
               onClick={() => setActiveTab('wallets')}
               className="text-sm font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 flex items-center"
             >
               Manage <ChevronRight size={16} className="ml-1" />
             </button>
           </div>
-          <motion.div 
+          <motion.div
             className="flex-1 flex gap-4 overflow-x-auto pb-4 scrollbar-none snap-x"
             variants={containerVariants}
           >
             {wallets.map(w => (
-              <motion.div 
+              <motion.div
                 variants={itemVariants}
-                key={w.id} 
+                key={w.id}
                 onClick={() => setActiveTab('wallets')}
                 className={`min-w-[180px] md:min-w-[220px] rounded-3xl p-5 text-white shadow-xl shadow-slate-200/50 dark:shadow-none relative overflow-hidden group hover:-translate-y-1 transition-all duration-300 snap-center bg-gradient-to-br ${w.color} cursor-pointer`}
               >
@@ -141,9 +135,9 @@ export default function Dashboard({
                 </div>
               </motion.div>
             ))}
-            
-            <motion.button 
-              variants={itemVariants} 
+
+            <motion.button
+              variants={itemVariants}
               onClick={() => setActiveTab('wallets')}
               className="min-w-[140px] rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-300 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/30 transition-all snap-center"
             >
@@ -156,7 +150,7 @@ export default function Dashboard({
 
       {/* TWO COLUMN LAYOUT: Transactions & Budgets (NOW SINGLE COLUMN) */}
       <div className="flex flex-col gap-6">
-        
+
         {/* Recent Transactions List */}
         <motion.div variants={itemVariants} className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 shadow-sm border border-slate-100/60 dark:border-slate-800 min-w-0">
           <div className="flex justify-between items-center mb-6">
@@ -165,7 +159,7 @@ export default function Dashboard({
               View All
             </button>
           </div>
-          
+
           <div className="space-y-0 divide-y divide-slate-100/80 dark:divide-slate-800">
             {transactions.slice(0, 6).map(tx => (
               <motion.div variants={itemVariants} key={tx.id} className="group flex items-center justify-between py-3.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all rounded-xl px-2 -mx-2">
@@ -189,8 +183,8 @@ export default function Dashboard({
                     </p>
                     <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{tx.category}</span>
                   </div>
-                  <button 
-                    onClick={() => handleDelete(tx.id)}
+                  <button
+                    aria-label={`Delete ${tx.note}`} onClick={() => handleDelete(tx.id)}
                     className="w-7 h-7 flex items-center justify-center rounded-full text-slate-300 dark:text-slate-500 hover:text-rose-500 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/30 transition-all shrink-0"
                   >
                     <Trash2 size={16} />
@@ -198,7 +192,7 @@ export default function Dashboard({
                 </div>
               </motion.div>
             ))}
-            
+
             {transactions.length === 0 && (
               <div className="py-6 text-center text-sm font-medium text-slate-400">
                 No recent transactions. Add one to get started!
@@ -213,40 +207,40 @@ export default function Dashboard({
           <motion.div variants={itemVariants} className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-sm border border-slate-100 dark:border-slate-800 mb-6">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-lg font-bold text-slate-800 dark:text-white">Budget Limits</h3>
-              <button className="text-slate-400 hover:text-indigo-600 transition-colors">
+              <button aria-label="Edit budget settings" onClick={() => setActiveTab('settings')} className="text-slate-400 hover:text-indigo-600 transition-colors">
                 <Info size={18} />
               </button>
             </div>
             <div className="space-y-5">
               {/* Overall Monthly Budget */}
               <div>
-                <div className="flex justify-between items-center text-sm font-semibold mb-2 gap-2">
+                <div className="flex flex-wrap justify-between items-center text-sm font-semibold mb-2 gap-2">
                   <span className="flex items-center text-slate-700 dark:text-slate-300 shrink-0">
                     <span className="mr-2 opacity-80">💰</span> <span className="truncate">Overall Budget</span>
                   </span>
                   <span className="text-slate-900 dark:text-white text-right whitespace-nowrap flex items-center justify-end">
                     <span className="text-slate-400 font-medium text-[10px] mr-1.5 uppercase tracking-wider">Spent</span>
-                    {formatCurrency(currentMonthExpense)} 
-                    <span className="text-slate-400 font-medium text-[10px] ml-1">/ {formatCurrency(totalBalance + currentMonthExpense)}</span>
+                    {formatCurrency(currentMonthExpense)}
+                    <span className="text-slate-400 font-medium text-[10px] ml-1">/ {formatCurrency(monthlyBudget)}</span>
                   </span>
                 </div>
                 <div className="h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden flex">
-                  <motion.div 
+                  <motion.div
                     initial={{ width: 0 }}
-                    animate={{ width: `${Math.min(100, Math.round((currentMonthExpense / ((totalBalance + currentMonthExpense) || 1)) * 100))}%` }}
+                    animate={{ width: `${Math.min(100, Math.round((currentMonthExpense / ((monthlyBudget) || 1)) * 100))}%` }}
                     transition={{ duration: 1, ease: 'easeOut', delay: 0.2 }}
-                    className={`h-full rounded-full ${currentMonthExpense >= (totalBalance + currentMonthExpense) ? 'bg-rose-500' : (currentMonthExpense / ((totalBalance + currentMonthExpense) || 1)) > 0.8 ? 'bg-amber-400' : 'bg-emerald-500'}`}
+                    className={`h-full rounded-full ${currentMonthExpense >= (monthlyBudget) ? 'bg-rose-500' : (currentMonthExpense / ((monthlyBudget) || 1)) > 0.8 ? 'bg-amber-400' : 'bg-emerald-500'}`}
                   />
                 </div>
                 <div className="mt-2 text-[11px] font-medium text-slate-500 dark:text-slate-400 flex justify-between items-center">
-                  <span>{currentMonthExpense >= (totalBalance + currentMonthExpense) ? 'Budget Exceeded!' : 'Remaining Budget'}</span>
-                  <span className={currentMonthExpense >= (totalBalance + currentMonthExpense) ? 'text-rose-500 font-bold' : 'text-emerald-600 dark:text-emerald-400 font-bold'}>
-                    {formatCurrency(totalBalance)}
+                  <span>{currentMonthExpense >= (monthlyBudget) ? 'Budget Exceeded!' : 'Remaining Budget'}</span>
+                  <span className={currentMonthExpense >= (monthlyBudget) ? 'text-rose-500 font-bold' : 'text-emerald-600 dark:text-emerald-400 font-bold'}>
+                    {formatCurrency(Math.max(0, monthlyBudget - currentMonthExpense))}
                   </span>
                 </div>
               </div>
               <div className="w-full h-px bg-slate-100 dark:bg-slate-800 my-2" />
-              
+
               {budgets.map(budget => {
                 const spent = transactions
                   .filter(t => t.category === budget.category && t.type === 'expense')
@@ -257,18 +251,18 @@ export default function Dashboard({
 
                 return (
                   <div key={budget.id}>
-                    <div className="flex justify-between items-center text-sm font-semibold mb-2 gap-2">
+                    <div className="flex flex-wrap justify-between items-center text-sm font-semibold mb-2 gap-2">
                       <span className="flex items-center text-slate-700 dark:text-slate-300 shrink-0">
                         <span className="mr-2 opacity-80">{budget.icon}</span> <span className="truncate">{budget.category}</span>
                       </span>
                       <span className="text-slate-900 dark:text-white text-right whitespace-nowrap flex items-center justify-end">
                         <span className="text-slate-400 font-medium text-[10px] mr-1.5 uppercase tracking-wider">Spent</span>
-                        {formatCurrency(spent)} 
+                        {formatCurrency(spent)}
                         <span className="text-slate-400 font-medium text-[10px] ml-1">/ {formatCurrency(budget.limit)}</span>
                       </span>
                     </div>
                     <div className="h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden flex">
-                      <motion.div 
+                      <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${percent}%` }}
                         transition={{ duration: 1, ease: 'easeOut', delay: 0.2 }}
@@ -282,7 +276,7 @@ export default function Dashboard({
           </motion.div>
 
           {/* Daily Spend Ad */}
-          <motion.div 
+          <motion.div
             whileHover={{ scale: 1.02 }}
             className="bg-gradient-to-br from-slate-800 to-slate-950 dark:from-indigo-900 dark:to-slate-900 rounded-[2rem] p-6 text-white shadow-xl relative overflow-hidden border border-slate-700 dark:border-indigo-500/20"
           >
@@ -290,7 +284,7 @@ export default function Dashboard({
             <Sparkles className="w-8 h-8 text-indigo-400 mb-4" />
             <p className="text-indigo-200 text-sm font-medium mb-1">Average Daily Spend</p>
             <p className="text-3xl font-extrabold mb-4">{formatCurrency(dailyAvgExpense)}</p>
-            <button 
+            <button
               onClick={() => setActiveTab('analytics')}
               className="w-full py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl font-bold transition-colors text-sm shadow-lg shadow-indigo-500/25"
             >
