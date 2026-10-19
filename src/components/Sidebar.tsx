@@ -1,4 +1,3 @@
-import React from 'react';
 import { Wallet, LayoutDashboard, ArrowRightLeft, PieChart, Award, Settings } from 'lucide-react';
 
 interface SidebarProps {
@@ -28,8 +27,8 @@ export default function Sidebar({ activeTab, setActiveTab, userName }: SidebarPr
             key={item.id}
             onClick={() => setActiveTab(item.id)}
             className={`w-full flex items-center space-x-3 px-4 py-3.5 rounded-2xl transition-all duration-300 font-medium ${
-              activeTab === item.id 
-                ? 'bg-indigo-50 text-indigo-700 shadow-sm' 
+              activeTab === item.id
+                ? 'bg-indigo-50 text-indigo-700 shadow-sm'
                 : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
             }`}
           >
@@ -42,11 +41,11 @@ export default function Sidebar({ activeTab, setActiveTab, userName }: SidebarPr
       </nav>
 
       <div className="mt-auto pt-6 border-t border-slate-100">
-        <button 
+        <button
           onClick={() => setActiveTab('settings')}
           className={`w-full flex items-center space-x-3 px-4 py-3 rounded-2xl border text-left transition-all ${
-            activeTab === 'settings' 
-              ? 'bg-indigo-50 border-indigo-100' 
+            activeTab === 'settings'
+              ? 'bg-indigo-50 border-indigo-100'
               : 'bg-slate-50 border-slate-100 hover:border-indigo-200'
           }`}
         >

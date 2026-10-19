@@ -1,6 +1,10 @@
-import React, { useState } from 'react';
+import PasswordSettings from './PasswordSettings';
+import AppUpdates from './AppUpdates';
+import { APP_VERSION } from '../version';
+import { exportBackup, restoreBackup } from '../backup';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sun, Moon, Lock, Download, Trash2, ChevronRight, User, Shield, Bell, HelpCircle, FileText, LogOut, Wallet } from 'lucide-react';
+import { Sun, Moon, Download, Trash2, ChevronRight, User, Bell, FileText, LogOut, Wallet } from 'lucide-react';
 import type { Transaction } from '../types';
 
 interface SettingsProps {
@@ -8,8 +12,7 @@ interface SettingsProps {
   userAvatar: string | null;
   isDarkMode: boolean;
   setIsDarkMode: (dark: boolean) => void;
-  biometricEnabled: boolean;
-  setBiometricEnabled: (enabled: boolean) => void;
+  onLock: () => void;
   openEditProfile: () => void;
   openNotifications: () => void;
   transactions: Transaction[];
@@ -28,17 +31,17 @@ const containerVariants = {
 
 const itemVariants = {
   hidden: { opacity: 0, y: 15 },
-  show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 400, damping: 30 } }
+  show: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 400, damping: 30 } }
 };
 
-export default function Settings({ 
-  userName, userAvatar, isDarkMode, setIsDarkMode, biometricEnabled, setBiometricEnabled, openEditProfile, openNotifications, transactions, monthlyBudget, setMonthlyBudget, currency, setCurrency, budgetAlertLimit, setBudgetAlertLimit 
+export default function Settings({
+  userName, userAvatar, isDarkMode, setIsDarkMode, onLock, openEditProfile, openNotifications, transactions, monthlyBudget, setMonthlyBudget, currency, setCurrency, budgetAlertLimit, setBudgetAlertLimit
 }: SettingsProps) {
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [showConfirmClear, setShowConfirmClear] = useState(false);
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
-  
+
   const [tempBudget, setTempBudget] = useState(String(monthlyBudget));
   const [tempCurrency, setTempCurrency] = useState(currency);
   const [tempLimit, setTempLimit] = useState(String(budgetAlertLimit));
@@ -49,8 +52,8 @@ export default function Settings({
   };
 
   const handleSaveBudgetSettings = () => {
-    const b = parseInt(tempBudget.replace(/[^0-9]/g, ''), 10);
-    const l = parseInt(tempLimit.replace(/[^0-9]/g, ''), 10);
+    const b = Number(tempBudget);
+    const l = Number(tempLimit);
     if (!isNaN(b) && b > 0 && !isNaN(l) && l > 0 && l <= 100) {
       setMonthlyBudget(b);
       setCurrency(tempCurrency);
@@ -67,28 +70,29 @@ export default function Settings({
       showToast('No transactions to export.');
       return;
     }
-    
+
     const headers = ['Date', 'Type', 'Category', 'Wallet', 'Amount', 'Note'];
     const rows = transactions.map(t => [
-      t.date, 
-      t.type, 
-      t.category, 
-      t.wallet, 
-      t.amount, 
-      `"${t.note.replace(/"/g, '""')}"`
+      t.date,
+      t.type,
+      t.category,
+      t.wallet,
+      t.amount,
+      t.note
     ]);
-    
-    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+
+    const csvContent = [headers.join(','), ...rows.map(r => r.map(value => { const text = String(value); return '"' + (/^[=+@-]/.test(text) ? "'" : '') + text.replace(/"/g, '""') + '"'; }).join(','))].join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
-    
+
     const link = document.createElement('a');
     link.href = url;
     link.setAttribute('download', `fintrack_export_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+    URL.revokeObjectURL(url);
+
     showToast('Export successful!');
   };
 
@@ -98,7 +102,7 @@ export default function Settings({
 
   return (
     <>
-      <motion.div 
+      <motion.div
         className="max-w-3xl mx-auto space-y-6"
         variants={containerVariants}
         initial="hidden"
@@ -116,7 +120,7 @@ export default function Settings({
             </div>
             <div>
               <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">{userName}</h3>
-              <p className="text-xs font-medium text-slate-400">Free Plan</p>
+              <p className="text-xs font-medium text-slate-400">Your finances, simplified</p>
             </div>
           </div>
           <button onClick={openEditProfile} className="p-2 bg-slate-50 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 rounded-xl hover:bg-indigo-50 dark:hover:bg-slate-700 transition-colors">
@@ -126,7 +130,7 @@ export default function Settings({
 
         {/* Settings Sections */}
         <motion.div variants={itemVariants} className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
-          
+
           {/* Section 1: Account */}
           <div className="p-4 border-b border-slate-100/50 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
             <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-2">Account & Security</h4>
@@ -141,7 +145,7 @@ export default function Settings({
               </div>
               <ChevronRight size={18} className="text-slate-300 group-hover:text-indigo-500 transition-colors" />
             </button>
-            
+
             <button onClick={() => {
               setTempBudget(String(monthlyBudget));
               setTempCurrency(currency);
@@ -160,23 +164,6 @@ export default function Settings({
               <ChevronRight size={18} className="text-slate-300 group-hover:text-indigo-500 transition-colors" />
             </button>
 
-            <div className="w-full p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors text-left">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 text-indigo-500 flex items-center justify-center">
-                  <Lock size={20} />
-                </div>
-                <span className="font-semibold text-slate-700 dark:text-slate-300">Biometric Lock</span>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input 
-                  type="checkbox" 
-                  className="sr-only peer" 
-                  checked={biometricEnabled}
-                  onChange={() => setBiometricEnabled(!biometricEnabled)} 
-                />
-                <div className="w-11 h-6 bg-slate-200 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-500"></div>
-              </label>
-            </div>
           </div>
 
           {/* Section 2: Preferences */}
@@ -209,9 +196,23 @@ export default function Settings({
 
           {/* Section 3: Data */}
           <div className="p-4 border-b border-t border-slate-100/50 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
-            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-2">Data & Storage</h4>
+            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-2">Data & Backups</h4>
           </div>
           <div className="divide-y divide-slate-100 dark:divide-slate-800">
+            <div className="p-4 space-y-3">
+              <p className="text-sm text-slate-500">Download a backup to keep a separate copy of your finances.</p>
+              <button onClick={exportBackup} className="w-full rounded-xl bg-indigo-600 text-white p-3 font-semibold">Download full backup</button>
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">Restore backup
+                <input type="file" accept=".json,application/json" className="block w-full mt-2 text-sm" onChange={async e => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  if (!window.confirm('Replace your current data with this backup? Download a current backup first.')) { e.target.value = ''; return; }
+                  try { restoreBackup(await file.text()); window.location.reload(); }
+                  catch (error) { showToast(error instanceof Error ? error.message : 'Could not restore backup.'); }
+                  e.target.value = '';
+                }} />
+              </label>
+            </div>
             <button onClick={handleExportCSV} className="w-full p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors text-left group">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -221,7 +222,7 @@ export default function Settings({
               </div>
               <ChevronRight size={18} className="text-slate-300 group-hover:text-indigo-500 transition-colors" />
             </button>
-            
+
             <button onClick={handleExportPDF} className="w-full p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors text-left group">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -231,11 +232,10 @@ export default function Settings({
               </div>
               <ChevronRight size={18} className="text-slate-300 group-hover:text-indigo-500 transition-colors" />
             </button>
-            
-            <button 
+
+            <button
               onClick={() => {
-                localStorage.removeItem('expense_currentUser');
-                window.location.reload();
+                onLock();
               }}
               className="w-full p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors text-left group"
             >
@@ -243,28 +243,30 @@ export default function Settings({
                 <div className="w-10 h-10 rounded-xl bg-orange-50 dark:bg-orange-900/30 text-orange-500 flex items-center justify-center group-hover:scale-110 transition-transform">
                   <LogOut size={20} />
                 </div>
-                <span className="font-semibold text-slate-700 dark:text-slate-300">Log Out</span>
+                <span className="font-semibold text-slate-700 dark:text-slate-300">Lock App</span>
               </div>
             </button>
-            
-            <button 
-              onClick={() => setShowConfirmClear(true)} 
+
+            <button
+              onClick={() => setShowConfirmClear(true)}
               className="w-full p-4 flex items-center justify-between hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors text-left group"
             >
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-900/30 text-rose-500 flex items-center justify-center group-hover:scale-110 transition-transform">
                   <Trash2 size={20} />
                 </div>
-                <span className="font-semibold text-rose-600 dark:text-rose-400">Clear Local Storage</span>
+                <span className="font-semibold text-rose-600 dark:text-rose-400">Delete all data</span>
               </div>
             </button>
           </div>
         </motion.div>
 
+        <PasswordSettings />
+        <AppUpdates />
         {/* App Version Info */}
         <motion.div variants={itemVariants} className="text-center pt-4 pb-8 text-slate-400">
-          <p className="text-xs font-bold uppercase tracking-widest text-slate-300 mb-1">FinTrack Mobile</p>
-          <p className="text-sm font-medium">Version 2.0.1 (Build 84)</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-slate-300 mb-1">FinTrack</p>
+          <p className="text-sm font-medium">Version {APP_VERSION}</p>
         </motion.div>
       </motion.div>
 
@@ -300,15 +302,15 @@ export default function Settings({
                 This will permanently delete all your transactions, wallets, and settings. This action cannot be undone.
               </p>
               <div className="flex space-x-3">
-                <button 
+                <button
                   onClick={() => setShowConfirmClear(false)}
                   className="flex-1 py-3.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   onClick={() => {
-                    localStorage.clear();
+                    Object.keys(localStorage).filter(key => key.startsWith('expense_') || key.startsWith('fintrack_')).forEach(key => localStorage.removeItem(key));
                     window.location.reload();
                   }}
                   className="flex-1 py-3.5 bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-xl shadow-lg shadow-rose-500/25 transition-all"
@@ -325,7 +327,7 @@ export default function Settings({
       <AnimatePresence>
         {isBudgetModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-slate-900/60 backdrop-blur-sm">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
@@ -335,12 +337,16 @@ export default function Settings({
                 <Wallet size={32} />
               </div>
               <h3 className="text-xl font-extrabold text-center text-slate-900 dark:text-white mb-6">Budget Settings</h3>
-              
+
               <div className="space-y-4 mb-8">
+                <div>
+                  <label htmlFor="monthly-budget" className="block text-sm font-semibold mb-2">Monthly budget</label>
+                  <input id="monthly-budget" type="number" min="1" step="0.01" value={tempBudget} onChange={e => setTempBudget(e.target.value)} className="w-full h-12 px-4 rounded-xl border border-slate-300 dark:bg-slate-800" />
+                </div>
                 <div>
                   <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide ml-1">App Currency</label>
                   <div className="mt-1.5 relative flex items-center">
-                    <select 
+                    <select
                       value={tempCurrency}
                       onChange={(e) => setTempCurrency(e.target.value)}
                       className="w-full h-12 px-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-300 focus:outline-none"
@@ -358,7 +364,7 @@ export default function Settings({
                   <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide ml-1">Alert Notification Threshold (%)</label>
                   <p className="text-[10px] text-slate-400 dark:text-slate-500 ml-1 mb-2">We will notify you when your expenses reach this percentage of your budget.</p>
                   <div className="mt-1.5 relative flex items-center">
-                    <input 
+                    <input
                       type="number"
                       min="1"
                       max="100"
@@ -373,13 +379,13 @@ export default function Settings({
               </div>
 
               <div className="flex space-x-3">
-                <button 
+                <button
                   onClick={() => setIsBudgetModalOpen(false)}
                   className="flex-1 py-3 rounded-xl font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   onClick={handleSaveBudgetSettings}
                   className="flex-1 py-3 rounded-xl font-bold text-white bg-emerald-500 hover:bg-emerald-600 transition-colors shadow-lg shadow-emerald-200 dark:shadow-none"
                 >

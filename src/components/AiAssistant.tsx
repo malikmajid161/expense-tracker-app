@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Sparkles, Send, Bot, User as UserIcon, Loader2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
@@ -36,7 +36,7 @@ export default function AiAssistant({ transactions, wallets, budgets, userName, 
   const totalIncome = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
   const totalExpense = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
   const totalBalance = wallets.reduce((sum, w) => sum + w.balance, 0);
-  
+
   const systemPrompt = `You are FinTrack AI, a friendly, ultra-smart financial advisor.
 User: ${userName}
 Data:
@@ -53,7 +53,7 @@ CRITICAL INSTRUCTIONS:
 4. FORMATTING IS MANDATORY:
    - Keep the entire response under 150 words.
    - Use ### for a single main heading if needed.
-   - Give 3 to 4 actionable, simple bullet points (- ) maximum. 
+   - Give 3 to 4 actionable, simple bullet points (- ) maximum.
    - Write in simple language so anyone can understand easily.`;
 
   useEffect(() => {
@@ -92,7 +92,7 @@ CRITICAL INSTRUCTIONS:
       });
 
       const data = await response.json();
-      
+
       if (data.choices && data.choices.length > 0) {
         setMessages(prev => [...prev, { role: 'assistant', content: data.choices[0].message.content }]);
       } else {
@@ -107,7 +107,7 @@ CRITICAL INSTRUCTIONS:
   };
 
   return (
-    <motion.div 
+    <motion.div
       className="flex flex-col h-full max-w-3xl mx-auto"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -126,7 +126,7 @@ CRITICAL INSTRUCTIONS:
 
       <div className="flex-1 overflow-y-auto px-4 space-y-5 scrollbar-none pb-4">
         {messages.map((msg, idx) => (
-          <motion.div 
+          <motion.div
             key={idx}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -137,8 +137,8 @@ CRITICAL INSTRUCTIONS:
                 {msg.role === 'user' ? <UserIcon size={16} className="text-slate-500 dark:text-slate-400" /> : <Bot size={16} className="text-indigo-500" />}
               </div>
               <div className={`rounded-3xl p-4 ${
-                msg.role === 'user' 
-                  ? 'bg-indigo-500 text-white rounded-br-sm shadow-md shadow-indigo-200 dark:shadow-none text-sm' 
+                msg.role === 'user'
+                  ? 'bg-indigo-500 text-white rounded-br-sm shadow-md shadow-indigo-200 dark:shadow-none text-sm'
                   : 'bg-indigo-50/50 dark:bg-slate-800/50 w-full rounded-bl-sm border border-indigo-100/50 dark:border-slate-700/50'
               }`}>
                 {msg.role === 'user' ? (
@@ -147,16 +147,16 @@ CRITICAL INSTRUCTIONS:
                   <div className="prose prose-sm dark:prose-invert prose-indigo max-w-none text-slate-700 dark:text-slate-300">
                     <ReactMarkdown
                       components={{
-                        h3: ({node, ...props}) => <h3 className="text-sm font-bold text-indigo-900 dark:text-indigo-100 mt-5 mb-3 uppercase tracking-wide bg-indigo-100/50 dark:bg-indigo-900/30 px-3 py-1.5 rounded-lg inline-block" {...props} />,
-                        ul: ({node, ...props}) => <ul className="space-y-3 mt-3 mb-5" {...props} />,
-                        li: ({node, ...props}) => (
+                        h3: ({node: _node, ...props}) => <h3 className="text-sm font-bold text-indigo-900 dark:text-indigo-100 mt-5 mb-3 uppercase tracking-wide bg-indigo-100/50 dark:bg-indigo-900/30 px-3 py-1.5 rounded-lg inline-block" {...props} />,
+                        ul: ({node: _node, ...props}) => <ul className="space-y-3 mt-3 mb-5" {...props} />,
+                        li: ({node: _node, ...props}) => (
                           <li className="flex items-start bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-700 p-3.5 rounded-2xl shadow-sm text-sm hover:shadow-md transition-shadow" {...props}>
                             <div className="w-2 h-2 rounded-full bg-indigo-500 mt-1.5 mr-3 shrink-0 shadow-sm shadow-indigo-200 dark:shadow-none" />
                             <span className="flex-1 font-medium">{props.children}</span>
                           </li>
                         ),
-                        p: ({node, ...props}) => <p className="text-sm leading-relaxed mb-3" {...props} />,
-                        strong: ({node, ...props}) => <strong className="font-extrabold text-indigo-700 dark:text-indigo-400" {...props} />
+                        p: ({node: _node, ...props}) => <p className="text-sm leading-relaxed mb-3" {...props} />,
+                        strong: ({node: _node, ...props}) => <strong className="font-extrabold text-indigo-700 dark:text-indigo-400" {...props} />
                       }}
                     >
                       {msg.content}
@@ -184,15 +184,15 @@ CRITICAL INSTRUCTIONS:
 
       <div className="sticky bottom-0 z-20 p-2 bg-transparent shrink-0 mx-2 mb-2">
         <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200 dark:border-slate-800 p-2 rounded-full shadow-lg shadow-slate-200/50 dark:shadow-none flex items-center space-x-2">
-          <input 
-            type="text" 
+          <input
+            type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-            placeholder="Ask AI for budget advice..." 
+            placeholder="Ask AI for budget advice..."
             className="flex-1 bg-transparent px-4 py-2 text-sm text-slate-700 dark:text-white focus:outline-none placeholder:text-slate-400"
           />
-          <button 
+          <button
             onClick={handleSend}
             disabled={isLoading || !input.trim()}
             className="w-10 h-10 bg-indigo-500 hover:bg-indigo-600 disabled:bg-slate-300 dark:disabled:bg-slate-700 text-white rounded-full flex items-center justify-center transition-colors shrink-0 shadow-md"

@@ -1,4 +1,5 @@
-import React, { useMemo } from 'react';
+import { useMoney } from '../currency';
+import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { PieChart as PieChartIcon, TrendingUp, TrendingDown, Activity } from 'lucide-react';
 import type { Transaction } from '../types';
@@ -14,7 +15,7 @@ const containerVariants = {
 
 const itemVariants = {
   hidden: { opacity: 0, y: 15 },
-  show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 400, damping: 30 } }
+  show: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 400, damping: 30 } }
 };
 
 const CHART_COLORS = ['#6366f1', '#f43f5e', '#fbbf24', '#10b981', '#a855f7', '#64748b'];
@@ -22,13 +23,7 @@ const TW_BG_COLORS = ['bg-indigo-500', 'bg-rose-500', 'bg-amber-400', 'bg-emeral
 
 export default function Analytics({ transactions }: AnalyticsProps) {
 
-  const formatCurrency = (val: number) => {
-    return new Intl.NumberFormat('en-PK', {
-      style: 'currency',
-      currency: 'PKR',
-      maximumFractionDigits: 0
-    }).format(val).replace('PKR', 'Rs.');
-  };
+  const formatCurrency = useMoney();
 
   const currentMonthExpense = useMemo(() => {
     return transactions.filter(t => t.type === 'expense').reduce((acc, t) => acc + t.amount, 0);
@@ -40,7 +35,7 @@ export default function Analytics({ transactions }: AnalyticsProps) {
       acc[t.category] = (acc[t.category] || 0) + t.amount;
       return acc;
     }, {} as Record<string, number>);
-    
+
     return Object.entries(grouped)
       .map(([name, amount]) => ({ name, amount }))
       .sort((a, b) => b.amount - a.amount)
@@ -53,7 +48,7 @@ export default function Analytics({ transactions }: AnalyticsProps) {
       acc[t.category] = (acc[t.category] || 0) + t.amount;
       return acc;
     }, {} as Record<string, number>);
-    
+
     return Object.entries(grouped)
       .map(([name, amount]) => ({ name, amount }))
       .sort((a, b) => b.amount - a.amount);
@@ -65,7 +60,7 @@ export default function Analytics({ transactions }: AnalyticsProps) {
   // Calculate conic gradient string for the donut chart
   const donutGradient = useMemo(() => {
     if (currentMonthExpense === 0) return 'conic-gradient(#f1f5f9 0% 100%)';
-    
+
     let currentPercent = 0;
     const segments = expenseByCategory.map((cat, i) => {
       const percentage = (cat.amount / currentMonthExpense) * 100;
@@ -74,24 +69,24 @@ export default function Analytics({ transactions }: AnalyticsProps) {
       currentPercent = end;
       return `${CHART_COLORS[i % CHART_COLORS.length]} ${start}% ${end}%`;
     });
-    
+
     // Fill remaining with gray if there are expenses not in the top 5
     if (currentPercent < 100) {
       segments.push(`#f1f5f9 ${currentPercent}% 100%`);
     }
-    
+
     return `conic-gradient(${segments.join(', ')})`;
   }, [expenseByCategory, currentMonthExpense]);
 
   return (
-    <motion.div 
+    <motion.div
       className="max-w-5xl mx-auto space-y-6"
       variants={containerVariants}
       initial="hidden"
       animate="show"
     >
       <div className="grid grid-cols-1 gap-6">
-        
+
         {/* Main Expense Chart */}
         <motion.div variants={itemVariants} className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 shadow-sm border border-slate-100/60 dark:border-slate-800">
           <div className="flex justify-between items-center mb-6">
@@ -100,9 +95,9 @@ export default function Analytics({ transactions }: AnalyticsProps) {
             </h3>
           </div>
           <div className="flex flex-col items-center justify-center py-6">
-            
+
             {/* CSS Donut Chart */}
-            <div 
+            <div
               className="relative w-48 h-48 rounded-full mb-8 flex items-center justify-center shadow-inner"
               style={{ background: donutGradient }}
             >
@@ -111,7 +106,7 @@ export default function Analytics({ transactions }: AnalyticsProps) {
                 <p className="text-xl font-extrabold text-slate-900 dark:text-white">{formatCurrency(currentMonthExpense)}</p>
               </div>
             </div>
-            
+
             {/* Dynamic Legend */}
             <div className="w-full space-y-3 px-2">
               {expenseByCategory.length === 0 ? (
@@ -140,7 +135,7 @@ export default function Analytics({ transactions }: AnalyticsProps) {
             <Activity className="w-8 h-8 text-indigo-300 mb-4" />
             <h3 className="text-lg font-bold mb-1">Monthly Trend</h3>
             <p className="text-indigo-200 text-sm mb-6">Track your daily activity and monitor your spending trajectory.</p>
-            
+
             <div className="flex items-end justify-between h-24 pt-4 border-b border-white/20 px-2">
               {[60, 80, 45, 90, 50, 75, 65, 40, 85].map((val, i) => (
                 <div key={i} className="w-3 bg-white/30 hover:bg-white rounded-t-sm transition-colors cursor-pointer" style={{ height: `${val}%` }}></div>

@@ -1,0 +1,155 @@
+import { test, expect } from '@playwright/test';
+async function setup(page) {
+  await page.goto('/');
+  await page.getByLabel('Create password', { exact: true }).fill('local-pass-123');
+  await page.getByLabel('Confirm password').fill('local-pass-123');
+  await page.getByRole('button', { name: 'Create password & start' }).click();
+  await page.getByLabel('I have saved my recovery code').check();
+  await page.getByRole('button', { name: 'Continue', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Overview', exact: true })).toBeVisible();
+}
+async function unlock(page) {
+  await page.getByLabel('Password', { exact: true }).fill('local-pass-123');
+  await page.getByRole('button', { name: 'Unlock', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Overview', exact: true })).toBeVisible();
+}
+test('password lock, decimals, reload, backup, delete balance, mobile layout', async ({ page }) => {
+  await setup(page);
+  await page.getByRole('button', { name: 'Add transaction', exact: true }).click();
+  await page.locator('input[type=number]').fill('25.50');
+  await page.getByPlaceholder('What was this for?').fill('Lunch test');
+  await page.getByRole('button', { name: 'Save Transaction' }).click();
+  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('expense_transactions_guest') || '[]')[0]?.amount)).toBe(25.5);
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('expense_wallets_guest')!)[0].balance)).toBe(-25.5);
+  await page.reload();
+  await page.getByLabel('Password', { exact: true }).fill('wrong-password');
+  await page.getByRole('button', { name: 'Unlock', exact: true }).click();
+  await expect(page.getByRole('alert')).toContainText('Incorrect password');
+  await unlock(page);
+  await page.getByRole('button', { name: 'transactions', exact: true }).click();
+  await expect(page.getByText('Lunch test', { exact: true })).toBeVisible();
+  page.on('dialog', d => d.accept());
+  await page.locator('button').filter({ has: page.locator('svg.lucide-trash-2') }).first().click();
+  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('expense_wallets_guest')!)[0].balance)).toBe(0);
+  await page.getByRole('button', { name: 'settings', exact: true }).click();
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Download full backup' }).click();
+  expect((await download).suggestedFilename()).toBe('fintrack-backup.json');
+  await page.getByRole('button', { name: 'Lock App' }).click();
+  await expect(page.getByRole('button', { name: 'Unlock', exact: true })).toBeVisible();
+  await page.setViewportSize({ width: 360, height: 740 });
+  await page.reload(); await unlock(page);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await expect(page.locator('main > div.overflow-y-auto > div')).toHaveCSS('opacity', '1');
+  await expect(page.getByRole('button', { name: 'settings', exact: true })).toBeInViewport();
+  await page.screenshot({ path: 'test-results/mobile.png', fullPage: true });
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.screenshot({ path: 'test-results/desktop.png', fullPage: true });
+});
+test('existing local profile remains unchanged after password setup', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('expense_currentUser', 'old-user');
+    localStorage.setItem('expense_userName_old-user', 'Existing User');
+    localStorage.setItem('expense_wallets_old-user', JSON.stringify([{ id:'w1',name:'Cash',balance:500,type:'cash',icon:'cash',color:'from-indigo-500 to-purple-600' }]));
+  });
+  await setup(page);
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('expense_wallets_old-user')!)[0].balance)).toBe(500);
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('expense_userName_old-user')!))).toBe('Existing User');
+});
+
+test('backup restores data and invalid backup leaves storage intact', async ({ page }) => {
+  await setup(page);
+  await page.getByRole('button', { name: 'settings', exact: true }).click();
+  const snapshot = await page.evaluate(() => {
+    const fields = ['transactions','wallets','budgets','monthlyBudget','currency','budgetAlertLimit','userName','userAvatar','notifications'];
+    return { version:1, data:Object.fromEntries(fields.map(f => [f, localStorage.getItem(`expense_${f}_guest`)])) };
+  });
+  snapshot.data.wallets = JSON.stringify([{ id:'restored',name:'Savings',balance:123.45,type:'bank',icon:'bank',color:'from-indigo-500 to-purple-600' }]);
+  page.on('dialog', d => d.accept());
+  await page.locator('input[type=file]').setInputFiles({ name:'backup.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(snapshot)) });
+  await expect(page.getByRole('button', { name: 'Unlock', exact: true })).toBeVisible();
+  await unlock(page);
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('expense_wallets_guest')!)[0].balance)).toBe(123.45);
+  await page.getByRole('button', { name: 'settings', exact: true }).click();
+  snapshot.data.transactions = '[{"amount":-100}]';
+  await page.locator('input[type=file]').setInputFiles({ name:'bad.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(snapshot)) });
+  await expect(page.getByText('Invalid transactions in backup.')).toBeVisible();
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('expense_wallets_guest')!)[0].balance)).toBe(123.45);
+});
+
+test('recovery reset keeps finances, rejects invalid and retired codes', async ({ page }) => {
+  await page.goto('/');
+  await page.getByLabel('Create password', { exact: true }).fill('original-pass-123');
+  await page.getByLabel('Confirm password').fill('original-pass-123');
+  await page.getByRole('button', { name: 'Create password & start' }).click();
+  const recovery = await page.getByTestId('recovery-code').innerText();
+  await page.getByLabel('I have saved my recovery code').check();
+  await page.getByRole('button', { name: 'Continue', exact: true }).click();
+  const before = await page.evaluate(() => localStorage.getItem('expense_wallets_guest'));
+  await page.reload();
+  await page.getByRole('button', { name: 'Forgot password?' }).click();
+  await page.getByLabel('Recovery code', { exact: true }).fill('WRONG');
+  await page.getByLabel('New password', { exact: true }).fill('new-password-123');
+  await page.getByLabel('Confirm password').fill('new-password-123');
+  await page.getByRole('button', { name: 'Reset password', exact: true }).click();
+  await expect(page.getByRole('alert')).toContainText('Recovery code is incorrect');
+  await page.getByLabel('Recovery code', { exact: true }).fill(recovery);
+  await page.getByRole('button', { name: 'Reset password', exact: true }).click();
+  await expect(page.getByTestId('recovery-code')).toBeVisible();
+  expect(await page.getByTestId('recovery-code').innerText()).not.toBe(recovery);
+  await page.getByLabel('I have saved my recovery code').check();
+  await page.getByRole('button', { name: 'Continue', exact: true }).click();
+  expect(await page.evaluate(() => localStorage.getItem('expense_wallets_guest'))).toBe(before);
+  await page.reload();
+  await page.getByLabel('Password', { exact: true }).fill('original-pass-123');
+  await page.getByRole('button', { name: 'Unlock', exact: true }).click();
+  await expect(page.getByRole('alert')).toContainText('Incorrect password');
+  await page.getByLabel('Password', { exact: true }).fill('new-password-123');
+  await page.getByRole('button', { name: 'Unlock', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Overview', exact: true })).toBeVisible();
+  await page.reload();
+  await page.getByRole('button', { name: 'Forgot password?' }).click();
+  await page.getByLabel('Recovery code', { exact: true }).fill(recovery);
+  await page.getByLabel('New password', { exact: true }).fill('another-pass-123');
+  await page.getByLabel('Confirm password').fill('another-pass-123');
+  await page.getByRole('button', { name: 'Reset password', exact: true }).click();
+  await expect(page.getByRole('alert')).toContainText('Recovery code is incorrect');
+});
+test('password change and recovery setup for an existing installation', async ({ page }) => {
+  await setup(page);
+  await page.evaluate(() => { const c = JSON.parse(localStorage.getItem('fintrack_password_v1')!); delete c.recoverySalt; delete c.recoveryHash; localStorage.setItem('fintrack_password_v1', JSON.stringify(c)); });
+  await page.getByRole('button', { name: 'settings', exact: true }).click();
+  await page.getByLabel('Current password', { exact: true }).fill('wrong-password');
+  await page.getByRole('button', { name: 'Generate new recovery code' }).click();
+  await expect(page.getByText('Current password is incorrect.')).toBeVisible();
+  await page.getByLabel('Current password', { exact: true }).fill('local-pass-123');
+  await page.getByRole('button', { name: 'Generate new recovery code' }).click();
+  await expect(page.getByTestId('settings-recovery-code')).toBeVisible();
+  await page.getByLabel('Current password', { exact: true }).fill('local-pass-123');
+  await page.getByLabel('New password', { exact: true }).fill('changed-pass-123');
+  await page.getByLabel('Confirm new password').fill('changed-pass-123');
+  await page.getByRole('button', { name: 'Change password', exact: true }).click();
+  await expect(page.getByText('Password changed.', { exact: true })).toBeVisible();
+  await page.reload();
+  await page.getByLabel('Password', { exact: true }).fill('changed-pass-123');
+  await page.getByRole('button', { name: 'Unlock', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Overview', exact: true })).toBeVisible();
+});
+test('GitHub update available, current, connection error, no storage banner', async ({ page }) => {
+  await setup(page);
+  await page.getByRole('button', { name: 'settings', exact: true }).click();
+  await expect(page.getByText('Stored on this device', { exact: true })).toHaveCount(0);
+  let status = 200;
+  let tag = 'v1.3.0';
+  await page.route('https://api.github.com/repos/malikmajid161/expense-tracker-app/releases/latest', route => route.fulfill({ status, json: { tag_name: tag, draft: false, prerelease: false, assets: [{ name: 'FinTrack.apk', browser_download_url:'https://github.com/malikmajid161/expense-tracker-app/releases/download/v1.3.0/FinTrack.apk' }] } }));
+  await page.getByRole('button', { name: 'Check for updates' }).click();
+  await expect(page.getByText('Version 1.3.0 is available.')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Download update' })).toBeVisible();
+  tag = 'v1.2.0';
+  await page.getByRole('button', { name: 'Check for updates' }).click();
+  await expect(page.getByText('You’re up to date.')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Download update' })).toHaveCount(0);
+  status = 403;
+  await page.getByRole('button', { name: 'Check for updates' }).click();
+  await expect(page.getByText('Could not check for updates. Try again or open GitHub releases.')).toBeVisible();
+});

@@ -46,16 +46,16 @@ export default function NotificationsPanel({ isOpen, onClose, notifications, set
       {isOpen && (
         <>
           {/* Backdrop */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
             className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm z-[80] rounded-b-[3rem] md:rounded-[2.5rem]"
           />
-          
+
           {/* Drawer */}
-          <motion.div 
+          <motion.div
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
@@ -93,21 +93,21 @@ export default function NotificationsPanel({ isOpen, onClose, notifications, set
                 </div>
               ) : (
                 notifications.map(notif => (
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     key={notif.id}
                     onClick={() => markAsRead(notif.id)}
                     className={`p-4 rounded-2xl border transition-all cursor-pointer ${
-                      notif.read 
-                        ? 'bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-800' 
+                      notif.read
+                        ? 'bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-800'
                         : 'bg-white dark:bg-slate-800 border-indigo-100 dark:border-indigo-500/30 shadow-md shadow-indigo-500/5'
                     }`}
                   >
                     <div className="flex space-x-4">
                       <div className={`mt-1 p-2 rounded-xl h-fit ${
-                        notif.type === 'alert' ? 'bg-rose-50 dark:bg-rose-900/30' : 
-                        notif.type === 'success' ? 'bg-emerald-50 dark:bg-emerald-900/30' : 
+                        notif.type === 'alert' ? 'bg-rose-50 dark:bg-rose-900/30' :
+                        notif.type === 'success' ? 'bg-emerald-50 dark:bg-emerald-900/30' :
                         'bg-indigo-50 dark:bg-indigo-900/30'
                       }`}>
                         {getIcon(notif.type)}
@@ -130,9 +130,9 @@ export default function NotificationsPanel({ isOpen, onClose, notifications, set
                   </motion.div>
                 ))
               )}
-              
+
               {notifications.length > 0 && (
-                <button 
+                <button
                   onClick={clearAll}
                   className="w-full py-4 text-xs font-bold text-slate-400 hover:text-rose-500 transition-colors uppercase tracking-widest"
                 >
